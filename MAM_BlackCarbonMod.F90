@@ -17,8 +17,8 @@
    USE ESMF
    USE MAPL
 
-   use Chem_ConstMod, only: grav, undef
-   use Chem_UtilMod,  only: Chem_BiomassDiurnal
+   use Chem_ConstModx, only: grav, undef
+!  use Chem_UtilMod,  only: Chem_BiomassDiurnal
 
    use MAM_BaseMod
    use MAM3_DataMod

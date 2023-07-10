@@ -1,5 +1,6 @@
 esma_set_this ()
 
+set(CMAKE_Fortran_FLAGS "-fno-range-check -ffree-line-length-none")
 set (microphysics_dir microphysics)
 set (srcs
   ${microphysics_dir}/infnan.F90
@@ -50,11 +51,16 @@ set (srcs
   MAM_OrganicCarbonMod.F90
   MAM_SulfateMod.F90
   MAM_GridCompMod.F90
+  Chem_ConstModx.F90
+  Chem_UtilMod.F90
+  DustEmissionMod.F90
+  SeasaltEmissionMod.F90
   #      wetdep.F90
   )
 
 
-set (dependencies MAPL Chem_Shared GMAO_mpeu esmf NetCDF::NetCDF_Fortran)
+#set (dependencies MAPL Chem_Shared GMAO_mpeu esmf NetCDF::NetCDF_Fortran)
+set (dependencies MAPL GMAO_mpeu esmf NetCDF::NetCDF_Fortran)
 esma_add_library (${this} SRCS ${srcs} DEPENDENCIES ${dependencies} SUBDIRS optics)
 target_compile_definitions (${this} PRIVATE GEOS5 MODAL_AERO MODAL_AERO_7MODE GEOS5_PORT)
 

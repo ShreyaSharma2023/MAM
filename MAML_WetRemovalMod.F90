@@ -18,7 +18,7 @@
 !
    use MAPL
 
-   use WetRemovalMod, only: WetRemovalGOCART
+!  use WetRemovalMod, only: WetRemovalGOCART
 
 
    implicit None

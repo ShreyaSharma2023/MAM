@@ -25,18 +25,14 @@
 
 ! !USES:
 
-#if 0
    use ESMF
    use MAPL
 
-   use Chem_Mod                  ! Chemistry Base Class
+!   use Chem_Mod                  ! Chemistry Base Class
    use mod_diag                  ! fvGCM diagnostics
    use m_die
    use m_StrTemplate             ! string templates
    use m_chars, only: uppercase
-#else
-   use m_die
-#endif
 
    implicit NONE
 
@@ -45,7 +41,6 @@
 !
 
    PRIVATE
-#if 0
    PUBLIC  Chem_UtilNegFiller       ! Fills negative values in a column
    PUBLIC  Chem_UtilTroppFixer      ! Repairs tropopause pressure bad values
    PUBLIC  Chem_UtilGetTimeInfo     ! Time info on file
@@ -64,10 +59,6 @@
    PUBLIC mcalday   ! GEOS-4 stub
    PUBLIC pmaxmin   ! functional
    PUBLIC zenith    ! GEOS-4 stub
-#else
-   PUBLIC  Chem_UtilResVal          ! Finds resolution dependent value that corresponds 
-                                    ! to the model resolution
-#endif
 
 !
 ! !DESCRIPTION:
@@ -82,115 +73,12 @@
 !EOP
 !-------------------------------------------------------------------------
 
-#if 0
    interface pmaxmin
      module procedure pmaxmin2d
      module procedure pmaxmin3d
    end interface
-#endif 
 
 CONTAINS
-
-#if 1
-!-------------------------------------------------------------------------
-!     NASA/GSFC, Global Modeling and Assimilation Office, Code 610.1     !
-!-------------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE:  Chem_UtilResVal --- returns resolution dependent value
-!
-! !INTERFACE:
-!
-   function Chem_UtilResVal( im_World, jm_World, res_value, rc ) result (val)
-
-! !USES:
-
-   implicit NONE
-
-   real :: val                                ! resolution dependent value
-
-! !INPUT/OUTPUT PARAMETERS:
-   integer, intent(in) :: im_World, jm_World  ! number of global grid cells
-   real,    intent(in) :: res_value(:)        ! array with the resolution dependent values:
-                                              ! the 'a', 'b', ..., 'e' resolution values have 
-                                              ! indexes 1, 2, ..., 5.
-
-! !OUTPUT PARAMETERS:
-   integer, intent(inout) :: rc               ! return code
-
-
-! !DESCRIPTION: 
-!
-! !REVISION HISTORY:
-!
-! 13 Feb2012   Anton Darmenov  First crack.
-! 25 Oct2012   Anton Darmenov  Added support for FV3 resolutions.
-!
-!EOP
-!-------------------------------------------------------------------------
-       character(len=*), parameter :: Iam = 'Chem_UtilResVal'
-
-       integer            :: i_res       
-
-       integer, parameter :: res_a = 1  ! 'a' to 'e' resolution indexes
-       integer, parameter :: res_b = 2  !
-       integer, parameter :: res_c = 3  !
-       integer, parameter :: res_d = 4  !
-       integer, parameter :: res_e = 5  !
-       integer, parameter :: res_f = 6  !
-
-       i_res = 0
-
-       if ((im_World < 1) .or. (jm_World < 1)) then
-           call die(Iam, 'incorrect model resolution')
-       end if
-
-       if (jm_World == 6*im_World) then
-           if (im_World <= 24) then
-               i_res = res_a
-           else if (im_World <=  48) then
-               i_res = res_b
-           else if (im_World <=  90) then
-               i_res = res_c
-           else if (im_World <= 180) then
-               i_res = res_d
-           else if (im_World <= 360) then
-               i_res = res_e
-           else if (im_World <= 720) then
-               i_res = res_f
-           else
-               i_res = res_f
-           end if
-       else
-           if ((im_World <= 72) .and. (jm_World <= 46)) then
-               i_res = res_a
-           else if ((im_World <=  144) .and. (jm_World <=  91)) then
-               i_res = res_b
-           else if ((im_World <=  288) .and. (jm_World <= 181)) then
-               i_res = res_c
-           else if ((im_World <=  576) .and. (jm_World <= 361)) then
-               i_res = res_d
-           else if ((im_World <= 1152) .and. (jm_World <= 721)) then
-               i_res = res_e
-           else if ((im_World <= 2304) .and. (jm_World <=1441)) then
-               i_res = res_f
-           else
-               i_res = res_f
-           end if
-       end if 
-
-       if ((i_res < 1) .or. (i_res > size(res_value))) then
-           val = 0.0
-           rc  = 42
-       else
-           val = res_value(i_res)
-           rc  = 0
-       end if
-
-   end function Chem_UtilResVal
-
-
-#else
 
 #ifdef USE_MAPL_MPREAD
 
@@ -1663,6 +1551,5 @@ END SUBROUTINE Chem_UtilExtractIntegers
 
   end subroutine Chem_UtilPointEmissions
 
-#endif
  end module Chem_UtilMod
 

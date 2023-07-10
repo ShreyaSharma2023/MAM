@@ -17,7 +17,7 @@
    USE ESMF
    USE MAPL
 
-   use Chem_ConstMod,   only: grav
+   use Chem_ConstModx,   only: grav
 
    use DustEmissionMod, only: MAM_DustEmissionGOCART, MAM_DustEmission
 

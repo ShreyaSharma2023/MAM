@@ -594,7 +594,7 @@ contains
     end do MICROPHYSICS_PROCESSES
 
 
-
+#if 0
 !   Create Mie tables for coupling with radiation
 !   ---------------------------------------------
     call ESMF_GridCompGet(GC, config=CF, __RC__) ! read paths to Mie tables from global config
@@ -626,7 +626,7 @@ contains
     call ESMF_ConfigGetAttribute(CF, mie_optics_file, label='MAM7_CDU_OPTICS:', __RC__)
     MAM7_MieTable(7) = MAML_OpticsTableCreate(trim(mie_optics_file), __RC__)
     call MAML_OpticsTableRead(MAM7_MieTable(7), __RC__)
-
+#endif
 
 !   This bundle is not filled in by MAM, just a place holder for now
 !   ----------------------------------------------------------------
@@ -956,7 +956,7 @@ contains
         ! MAM_MieTable = MAM_MieCreate(CF, __RC__)
 
         ! state of the atmosphere
-        call ESMF_AttributeSet(aero, name='air_pressure_for_aerosol_optics',             value='PLE', __RC__)
+        call ESMF_AttributeSet(aero, name='air_pressure_for_aerosol_optics',             value='PLE2', __RC__)
         call ESMF_AttributeSet(aero, name='relative_humidity_for_aerosol_optics',        value='RH',  __RC__)
         call ESMF_AttributeSet(aero, name='cloud_area_fraction_for_aerosol_optics',      value='',    __RC__) ! 'cloud_area_fraction_in_atmosphere_layer_for_aerosol_optics'
 
@@ -1265,6 +1265,7 @@ contains
     end if
 #endif
 
+#if 0
 !   Create narrow-band Mie tables
 !   -----------------------------
     call ESMF_ConfigGetAttribute ( self%CF, mie_optics_file, Label='narrowband_optics_ait:', default='', __RC__ )
@@ -1294,7 +1295,7 @@ contains
     call ESMF_ConfigGetAttribute ( self%CF, mie_optics_file, Label='narrowband_optics_cdu:', default='', __RC__ )
     self%mie_cdu = MAML_OpticsTableCreate(trim(mie_optics_file), __RC__)
     call MAML_OpticsTableRead(self%mie_cdu, __RC__)
-
+#endif
 
 !   All done
 !   --------
@@ -2025,7 +2026,7 @@ contains
 
     amc_deltat = self%dt                       ! time step (s)
 
-    call MAPL_GetPointer(import, ple,   'PLE',   __RC__)
+    call MAPL_GetPointer(import, ple,   'PLE2',   __RC__)
     call MAPL_GetPointer(import, delp,  'DELP',  __RC__)
     call MAPL_GetPointer(import, fcld,  'FCLD',  __RC__)
     call MAPL_GetPointer(import, Q,     'Q',     __RC__)
@@ -3163,7 +3164,7 @@ contains
 
 ! !USES:
 
-    use Chem_ConstMod, only: grav
+    use Chem_ConstModx, only: grav
 
     implicit none
 
@@ -3229,7 +3230,7 @@ contains
 !   Get Imports
 !   --------------
     call MAPL_GetPointer(import, rhoa,    'AIRDENS',   __RC__)
-    call MAPL_GetPointer(import, ple,     'PLE',       __RC__)
+    call MAPL_GetPointer(import, ple,     'PLE2',       __RC__)
     call MAPL_GetPointer(import, delp,    'DELP',      __RC__)
 
     call MAPL_GetPointer(import, pSO4_aq, 'pSO4_aq',   __RC__)
@@ -3351,7 +3352,7 @@ contains
 
 ! !USES:
 
-    use Chem_ConstMod, only: grav
+    use Chem_ConstModx, only: grav
 
     implicit none
 
@@ -3412,7 +3413,7 @@ contains
 !   Get Imports
 !   --------------
     call MAPL_GetPointer(import, rhoa,      'AIRDENS',   __RC__)
-    call MAPL_GetPointer(import, ple,       'PLE',       __RC__)
+    call MAPL_GetPointer(import, ple,       'PLE2',       __RC__)
     call MAPL_GetPointer(import, delp,      'DELP',      __RC__)
 
 !   Get Exports
@@ -3482,7 +3483,7 @@ contains
 
 ! !USES:
 
-    use Chem_ConstMod, only: grav
+    use Chem_ConstModx, only: grav
 
     implicit none
 
@@ -3646,7 +3647,7 @@ contains
 
 ! !USES:
 
-    use Chem_ConstMod, only: grav
+    use Chem_ConstModx, only: grav
     use MAM_ComponentsDataMod, only : MAM_WATER_COMPONENT_DENSITY,        &
                                       MAM_SULFATE_COMPONENT_DENSITY,      &
                                       MAM_AMMONIUM_COMPONENT_DENSITY,     &
