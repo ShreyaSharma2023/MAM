@@ -916,7 +916,9 @@ contains
     ! Radiation will not call the aerosol optics method unless this attribute is
     ! explicitly set to true.
 
-    implements_aerosol_optics = .true.
+
+! DEBUG Changing this to false temporarily
+    implements_aerosol_optics = .false.
 
     call ESMF_AttributeSet(aero, name  = 'implements_aerosol_optics_method', &
                                  value = implements_aerosol_optics, __RC__)
@@ -956,7 +958,7 @@ contains
         ! MAM_MieTable = MAM_MieCreate(CF, __RC__)
 
         ! state of the atmosphere
-        call ESMF_AttributeSet(aero, name='air_pressure_for_aerosol_optics',             value='PLE2', __RC__)
+        call ESMF_AttributeSet(aero, name='air_pressure_for_aerosol_optics',             value='PLE', __RC__)
         call ESMF_AttributeSet(aero, name='relative_humidity_for_aerosol_optics',        value='RH',  __RC__)
         call ESMF_AttributeSet(aero, name='cloud_area_fraction_for_aerosol_optics',      value='',    __RC__) ! 'cloud_area_fraction_in_atmosphere_layer_for_aerosol_optics'
 
@@ -2026,7 +2028,7 @@ contains
 
     amc_deltat = self%dt                       ! time step (s)
 
-    call MAPL_GetPointer(import, ple,   'PLE2',   __RC__)
+    call MAPL_GetPointer(import, ple,   'PLE',   __RC__)
     call MAPL_GetPointer(import, delp,  'DELP',  __RC__)
     call MAPL_GetPointer(import, fcld,  'FCLD',  __RC__)
     call MAPL_GetPointer(import, Q,     'Q',     __RC__)
@@ -2038,6 +2040,13 @@ contains
 !   call MAPL_GetPointer(import, h2o2,  'H2O2',     __RC__)
     call MAPL_GetPointer(import, h2so4, 'H2SO4',    __RC__)
     call MAPL_GetPointer(import, so2,   'SO2',      __RC__)
+
+    ! Print the first layer
+    print *, "First layer values:", so2(1,1,1)
+    
+    ! Print the last layer
+    print *, "Last layer values:", so2(1,1,72)
+
 !   call MAPL_GetPointer(import, dms,   'DMS',      __RC__)
     call MAPL_GetPointer(import, nh3,   'NH3',      __RC__)
     call MAPL_GetPointer(import, soa_g, 'SOA_GAS',  __RC__)
@@ -3230,7 +3239,7 @@ contains
 !   Get Imports
 !   --------------
     call MAPL_GetPointer(import, rhoa,    'AIRDENS',   __RC__)
-    call MAPL_GetPointer(import, ple,     'PLE2',       __RC__)
+    call MAPL_GetPointer(import, ple,     'PLE',       __RC__)
     call MAPL_GetPointer(import, delp,    'DELP',      __RC__)
 
     call MAPL_GetPointer(import, pSO4_aq, 'pSO4_aq',   __RC__)
@@ -3413,7 +3422,7 @@ contains
 !   Get Imports
 !   --------------
     call MAPL_GetPointer(import, rhoa,      'AIRDENS',   __RC__)
-    call MAPL_GetPointer(import, ple,       'PLE2',       __RC__)
+    call MAPL_GetPointer(import, ple,       'PLE',       __RC__)
     call MAPL_GetPointer(import, delp,      'DELP',      __RC__)
 
 !   Get Exports
