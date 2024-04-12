@@ -197,6 +197,8 @@
        deallocate(q_mass, density, iq_mmr, __STAT__)
    end do
 
+print*, " ***DEBUG*** MAM Dry size is running"
+
    end subroutine MAM_DrySize
 
 
@@ -354,6 +356,8 @@
 
            deallocate(q_mass, density, hygroscopicity, iq_mmr, __STAT__)
        end do
+
+print*, " ***DEBUG*** MAM Wet size is running"
 
    end subroutine MAM_WetSize
 

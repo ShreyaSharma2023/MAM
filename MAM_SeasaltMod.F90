@@ -1,5 +1,6 @@
 #include "MAPL_Generic.h"
 
+
 !-------------------------------------------------------------------------
 !         NASA/GSFC, Data Assimilation Office, Code 610.1, GEOS/DAS      !
 !-------------------------------------------------------------------------
@@ -20,7 +21,7 @@
 
    use Chem_ConstModx,      only: grav    
 
-   use SeasaltEmissionMod, only: SeasaltEmission
+!   use SeasaltEmissionMod, only: SeasaltEmission
 
    use MAM_BaseMod
    use MAM3_DataMod
@@ -38,7 +39,7 @@
 ! !PUBLIIC MEMBER FUNCTIONS:
 !
 
-   public MAM_SS_Emission
+!   public MAM_SS_Emission
    public MAM_SS_Diagnostics
 
 !
@@ -57,6 +58,8 @@
 
  contains
 
+! Switching off emissions
+#if 0
 !-------------------------------------------------------------------------
 !     NASA/GSFC, Global Modeling and Assimilation Office, Code 610.1     !
 !-------------------------------------------------------------------------
@@ -255,8 +258,9 @@
        emission_num  = 0.0
        emission_mass = 0.0
 
-       call SeasaltEmission(rLow, rUp, method, w10m, ustar, &
-                            emission_mass, emission_num, rc)
+! Switching off emissions
+!       call SeasaltEmission(rLow, rUp, method, w10m, ustar, &
+!                            emission_mass, emission_num, rc)
 
        emission_mass = f_emiss * f_grid_efficiency * f_sst_emis * emission_mass
        emission_num  = f_emiss * f_grid_efficiency * f_sst_emis * emission_num
@@ -267,6 +271,8 @@
        call pmaxmin('SS: emission_mass  ', emission_mass, qmin, qmax, ijl, 1, 1.)
        call pmaxmin('SS: emission_number', emission_num,  qmin, qmax, ijl, 1, 1.)
 #endif
+
+       print *, 'SS: mode ' // trim(mode_name(n)), minval(emission_mass), maxval(emission_mass)
 
        dqa_mass = emission_mass * cdt * grav / delp(:,:,km)
        dqa_num  = emission_num  * cdt * grav / delp(:,:,km)
@@ -299,7 +305,7 @@
    RETURN_(ESMF_SUCCESS)
 
  end subroutine MAM_SS_Emission
-
+#endif
 
 
 !-------------------------------------------------------------------------

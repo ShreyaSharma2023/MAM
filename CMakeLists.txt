@@ -35,8 +35,8 @@ set (srcs
   MAML_DryDepositionMod.F90
   MAML_DryRemovalMod.F90
   MAML_WetRemovalMod.F90
-  MAML_OpticsTableMod.F90
-  MAML_OpticsMod.F90
+#  MAML_OpticsTableMod.F90
+#  MAML_OpticsMod.F90
   MAM3_DataMod.F90
   MAM7_DataMod.F90
   MAM_ComponentsDataMod.F90
@@ -53,8 +53,8 @@ set (srcs
   MAM_GridCompMod.F90
   Chem_ConstModx.F90
   Chem_UtilMod.F90
-  DustEmissionMod.F90
-  SeasaltEmissionMod.F90
+#  DustEmissionMod.F90
+#  SeasaltEmissionMod.F90
   #      wetdep.F90
   )
 
@@ -71,6 +71,8 @@ file (GLOB resource_files CONFIGURE_DEPENDS "*.rc" "*.yaml")
 set (mamscripts mam_optics_calculator.py mam_optics_calculator.csh)
 
 ecbuild_add_executable(TARGET mam_optics_calculator.xx SOURCES mam_optics_calculator.F90 LIBS ${this})
+ecbuild_add_executable(TARGET mam_optics_calculator1.xx SOURCES mam_optics_calculator.F90 LIBS ${this})
+ecbuild_add_executable(TARGET mam_box_model.xx SOURCES mam_box_model.F90 LIBS ${this})
 
 install(
    FILES ${resource_files}
@@ -78,6 +80,6 @@ install(
    )
 
 install(
-   PROGRAMS ${mamscripts}
+   PROGRAMS ${mamscripts} mam_optics_calculator.xx mam_optics_calculator1.xx
    DESTINATION bin)
 

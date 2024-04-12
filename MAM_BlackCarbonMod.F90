@@ -35,7 +35,7 @@
 ! !PUBLIIC MEMBER FUNCTIONS:
 !
 
-   PUBLIC  MAM_BC_Emission
+!   PUBLIC  MAM_BC_Emission
    PUBLIC  MAM_BC_Diagnostics
 
 !
@@ -53,7 +53,8 @@
 
 
 CONTAINS
-
+! Switching off emissions
+#if 0
 !-------------------------------------------------------------------------
 !     NASA/GSFC, Global Modeling and Assimilation Office, Code 610.1     !
 !-------------------------------------------------------------------------
@@ -321,7 +322,7 @@ CONTAINS
    RETURN_(ESMF_SUCCESS)
 
  end subroutine MAM_BC_Emission
-
+#endif
 
 !-------------------------------------------------------------------------
 !     NASA/GSFC, Global Modeling and Assimilation Office, Code 610.1     !
