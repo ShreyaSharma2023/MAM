@@ -18,7 +18,7 @@
    USE MAPL
 
    use Chem_ConstModx, only: grav, undef
-!   use Chem_UtilMod,  only: Chem_BiomassDiurnal
+   use Chem_UtilMod,  only: Chem_BiomassDiurnal
 
    use MAM_BaseMod
    use MAM3_DataMod
@@ -35,7 +35,7 @@
 ! !PUBLIIC MEMBER FUNCTIONS:
 !
 
-   PUBLIC  MAM_SO4_Emission
+!   PUBLIC  MAM_SO4_Emission
    PUBLIC  MAM_SO4_Diagnostics
 
 !
@@ -54,6 +54,8 @@
 
 CONTAINS
 
+! Switching off emissions
+#if 0
 !-------------------------------------------------------------------------
 !     NASA/GSFC, Global Modeling and Assimilation Office, Code 610.1     !
 !-------------------------------------------------------------------------
@@ -295,7 +297,7 @@ CONTAINS
    RETURN_(ESMF_SUCCESS)
 
  end subroutine MAM_SO4_Emission
-
+#endif
 
 !-------------------------------------------------------------------------
 !     NASA/GSFC, Global Modeling and Assimilation Office, Code 610.1     !

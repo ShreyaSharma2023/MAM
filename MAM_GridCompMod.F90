@@ -31,31 +31,34 @@
 
    use MAM_SizeMod,          only: MAM_DrySize, MAM_WetSize
 
-   use MAM_SeasaltMod,       only: MAM_SS_Emission, MAM_SS_Diagnostics
-   use MAM_DustMod,          only: MAM_DU_Emission, MAM_DU_Diagnostics
-   use MAM_BlackCarbonMod,   only: MAM_BC_Emission
-   use MAM_OrganicCarbonMod, only: MAM_OC_Emission
-   use MAM_SulfateMod,       only: MAM_SO4_Emission
+   use MAM_SeasaltMod
+   use MAM_DustMod
+   use MAM_BlackCarbonMod
+   use MAM_OrganicCarbonMod
+   use MAM_SulfateMod
 
    use MAM_DryRemovalMod,    only: MAM_DryRemoval
    use MAM_WetRemovalMod,    only: MAM_WetRemoval
 
-   use MAML_OpticsTableMod,  only: MAML_OpticsTable,        &
-                                   MAML_OpticsTableCreate,  &
-                                   MAML_OpticsTableDestroy, &
-                                   MAML_OpticsTableRead
-   use MAML_OpticsMod,       only: MAML_OpticsInterpolate
+!   use MAML_OpticsTableMod,  only: MAML_OpticsTable,        &
+!                                   MAML_OpticsTableCreate,  &
+!                                   MAML_OpticsTableDestroy, &
+!                                   MAML_OpticsTableRead
+!   use MAML_OpticsMod,       only: MAML_OpticsInterpolate
 
 
    implicit none
    private
 
 
-   type(MAML_OpticsTable), save :: MAM7_MieTable(7)
+!   type(MAML_OpticsTable), save :: MAM7_MieTable(7)
 
    integer, parameter :: instanceComputational = 1
    integer, parameter :: instanceData          = 2
-
+  
+! DEBUG - SS
+   integer :: EmCtr = 0
+! DEBUG - SS
 
 !
 ! !PUBLIC MEMBER FUNCTIONS:
@@ -133,6 +136,7 @@
       real                        :: f_wet_fdu
       real                        :: f_wet_cdu
 
+#if 0
       type(MAML_OpticsTable)      :: mie_ait
       type(MAML_OpticsTable)      :: mie_acc
       type(MAML_OpticsTable)      :: mie_pcm
@@ -140,6 +144,7 @@
       type(MAML_OpticsTable)      :: mie_css
       type(MAML_OpticsTable)      :: mie_fdu
       type(MAML_OpticsTable)      :: mie_cdu
+#endif
 
       logical                     :: verbose      ! verbosity flag
    end type MAM_State
@@ -366,8 +371,11 @@ contains
                                       UNITS      = '#/kg',                &
                                       DIMS       = MAPL_DimsHorzVert,     &
                                       VLOCATION  = MAPL_VLocationCenter,  &
+!                                      ADD2EXPORT = .true.,                &
                                       RESTART    = MAPL_RestartOptional,  &
-                                      FRIENDLYTO = 'DYNAMICS:TURBULENCE:MOIST', __RC__)
+! Commenting out due to MAPL_Generic error
+                                      FRIENDLYTO = 'DYNAMICS:TURBULENCE:MOIST', & 
+                                      __RC__)
 
         ! mass mixing ratios
         do s = 1, n_species
@@ -381,8 +389,10 @@ contains
                                           UNITS      = 'kg kg-1',             &
                                           DIMS       = MAPL_DimsHorzVert,     &
                                           VLOCATION  = MAPL_VLocationCenter,  &
+!                                          ADD2EXPORT = .true.,                &
                                           RESTART    = MAPL_RestartOptional,  &
-                                          FRIENDLYTO = 'DYNAMICS:TURBULENCE:MOIST', __RC__)
+                                          FRIENDLYTO = 'DYNAMICS:TURBULENCE:MOIST', &
+                                          __RC__)
         end do
 
         ! absorbed water
@@ -394,8 +404,10 @@ contains
                                       UNITS      = 'kg kg-1',             &
                                       DIMS       = MAPL_DimsHorzVert,     &
                                       VLOCATION  = MAPL_VLocationCenter,  &
-                                      ADD2EXPORT = .true.,                &
-                                      RESTART    = MAPL_RestartSkip, __RC__)
+!                                      ADD2EXPORT = .true.,                &
+                                      RESTART    = MAPL_RestartSkip,      & 
+                                      FRIENDLYTO = 'DYNAMICS:TURBULENCE:MOIST', __RC__)
+
 
         ! dry size
         field_name = 'DGN_DRY_' // trim(mode_name)
@@ -406,8 +418,9 @@ contains
                                       UNITS      = 'm',                   &
                                       DIMS       = MAPL_DimsHorzVert,     &
                                       VLOCATION  = MAPL_VLocationCenter,  &
-                                      ADD2EXPORT = .true.,                &
-                                      RESTART    = MAPL_RestartSkip, __RC__)
+!                                      ADD2EXPORT = .true.,                &
+                                      RESTART    = MAPL_RestartSkip,      & 
+                                      FRIENDLYTO = 'DYNAMICS:TURBULENCE:MOIST', __RC__)
 
         ! wet size
         field_name = 'DGN_WET_' // trim(mode_name)
@@ -418,8 +431,9 @@ contains
                                       UNITS      = 'm',                   &
                                       DIMS       = MAPL_DimsHorzVert,     &
                                       VLOCATION  = MAPL_VLocationCenter,  &
-                                      ADD2EXPORT = .true.,                &
-                                      RESTART    = MAPL_RestartSkip, __RC__)
+!                                      ADD2EXPORT = .true.,                &
+                                      RESTART    = MAPL_RestartSkip,      &
+                                      FRIENDLYTO = 'DYNAMICS:TURBULENCE:MOIST', __RC__)
     end do
 
 
@@ -459,7 +473,8 @@ contains
         end do
     end do
 
-#if (0)
+! This section was commented out, I unncommented it (looks like it is already there before)
+#if 0
 !   Add dry and wet aerosol sizes to the internal state
 !   ---------------------------------------------------
     attachment_state = 'interstitial'
@@ -642,6 +657,8 @@ contains
 
 !   All done
 !   --------
+
+    print *, "End of the MAM SetServices routine"
 
     RETURN_(ESMF_SUCCESS)
 
@@ -916,11 +933,14 @@ contains
     ! Radiation will not call the aerosol optics method unless this attribute is
     ! explicitly set to true.
 
-    implements_aerosol_optics = .true.
+
+! DEBUG Changing this to false temporarily
+    implements_aerosol_optics = .false.
 
     call ESMF_AttributeSet(aero, name  = 'implements_aerosol_optics_method', &
                                  value = implements_aerosol_optics, __RC__)
 
+#if 0
     COUPLING_TO_RADIATION: if (implements_aerosol_optics) then
 
         aero_state_aerosols = ESMF_FieldBundleCreate(name="AEROSOLS", __RC__)
@@ -956,7 +976,7 @@ contains
         ! MAM_MieTable = MAM_MieCreate(CF, __RC__)
 
         ! state of the atmosphere
-        call ESMF_AttributeSet(aero, name='air_pressure_for_aerosol_optics',             value='PLE2', __RC__)
+        call ESMF_AttributeSet(aero, name='air_pressure_for_aerosol_optics',             value='PLE', __RC__)
         call ESMF_AttributeSet(aero, name='relative_humidity_for_aerosol_optics',        value='RH',  __RC__)
         call ESMF_AttributeSet(aero, name='cloud_area_fraction_for_aerosol_optics',      value='',    __RC__) ! 'cloud_area_fraction_in_atmosphere_layer_for_aerosol_optics'
 
@@ -1015,7 +1035,7 @@ contains
         call ESMF_MethodAdd(aero, label='aerosol_optics', userRoutine=aerosol_optics, __RC__)
 
     end if COUPLING_TO_RADIATION
-
+#endif
 
 !   Fill the AERO State with the aerosol mixing ratios
 !   ---------------------------------------------------
@@ -1496,6 +1516,7 @@ contains
         end if
 #endif
 
+        print *, "End of the MAM initialize routine"
 
         RETURN_(ESMF_SUCCESS)
 
@@ -1858,6 +1879,12 @@ contains
                            LATS=lats, &
                            RunAlarm=run_alarm, __RC__)
 
+! DEBUG - SS
+   print*, "The value of EmCtr is", EmCtr
+   EmCtr = EmCtr + 1
+   print*, "The value of EmCtr is", EmCtr
+! DEBUG - SS
+
 
 !   If it is time, update MAM state
 !   -------------------------------
@@ -2023,10 +2050,9 @@ contains
     if (self%nucleation)   amc_do_newnuc     = 1
     if (self%coagulation)  amc_do_coag       = 1
 
-
     amc_deltat = self%dt                       ! time step (s)
 
-    call MAPL_GetPointer(import, ple,   'PLE2',   __RC__)
+    call MAPL_GetPointer(import, ple,   'PLE',   __RC__)
     call MAPL_GetPointer(import, delp,  'DELP',  __RC__)
     call MAPL_GetPointer(import, fcld,  'FCLD',  __RC__)
     call MAPL_GetPointer(import, Q,     'Q',     __RC__)
@@ -2038,6 +2064,14 @@ contains
 !   call MAPL_GetPointer(import, h2o2,  'H2O2',     __RC__)
     call MAPL_GetPointer(import, h2so4, 'H2SO4',    __RC__)
     call MAPL_GetPointer(import, so2,   'SO2',      __RC__)
+
+!   DEBUG-SS
+    print*, "H2SO4 at time step", EmCtr, "is", minval(h2so4), maxval(h2so4)
+    if (EmCtr == 0) then
+    h2so4(:,:,:) = 0.1_r8
+    endif
+!   DEBUG-SS
+   
 !   call MAPL_GetPointer(import, dms,   'DMS',      __RC__)
     call MAPL_GetPointer(import, nh3,   'NH3',      __RC__)
     call MAPL_GetPointer(import, soa_g, 'SOA_GAS',  __RC__)
@@ -2069,6 +2103,10 @@ contains
     call MAPL_GetPointer(import, nh3_a_,    '_NH3_aq',      __RC__)
     call MAPL_GetPointer(import, soa_g_a_,  '_SOA_GAS_aq',  __RC__)
 
+! DEBUG-SS
+    print*, "Begin H2SO4_g_ at time step", EmCtr, "is", minval(h2so4_g_), maxval(h2so4_g_)
+    print*, "Begin H2SO4_a_ at time step", EmCtr, "is", minval(h2so4_a_), maxval(h2so4_a_)
+! DEBUG-SS
 
     ! aitken
     call MAPL_GetPointer(internal, ait_a_num, 'NUM_A_AIT', __RC__)
@@ -2324,6 +2362,13 @@ contains
 
 
             amc_q_pregaschem(:ncol,:pver,:pcnstxx) = amc_q      ! q TMRs    before gas-phase chemistry
+
+! DEBUG-SS
+if ((i == 1) .and. (j == 1)) then
+print*, "The value of H2SO4 in aerosol microphysics in time step",EmCtr,"is",minval(amc_q(:,:,i_h2so4)) , maxval(amc_q(:,:,i_h2so4))
+endif
+! DEBUG-SS
+
 #if (0)
             ! compute pregaschem using tendencies
             amc_q_pregaschem(ncol,:,i_h2so4) = h2so4(i,j,:) - (ddt_h2so4_gas(i,j,:) + ddt_h2so4_aq(i,j,:))*self%dt
@@ -2332,6 +2377,13 @@ contains
 #else
             ! ...or use the pregas exports
             amc_q_pregaschem(ncol,:,i_h2so4) = h2so4_g_(i,j,:)
+
+! DEBUG-SS
+if ((i == 1) .and. (j == 1)) then
+print *, "The value of H2SO4 at time step", EmCtr, "after copying the pregaschem value is ", minval(amc_q_pregaschem(:,:,i_h2so4)) , maxval(amc_q_pregaschem(:,:,i_h2so4))
+endif
+! DEBUG-SS
+
             amc_q_pregaschem(ncol,:,i_so2)   = so2_g_(i,j,:)
             amc_q_pregaschem(ncol,:,i_nh3)   = nh3_g_(i,j,:)
 #endif
@@ -2408,6 +2460,12 @@ contains
             !    2. renaming after "continuous growth"
             !    3. primary carbon aging
 
+! DEBUG - SS
+if ((i == 1) .and. (j == 1)) then
+print*, "The value of temperature is", minval(amc_t), maxval(amc_t)
+endif
+! DEBUG - SS
+
             call modal_aero_amicphys_intr(amc_do_gasaerexch,   &
                                           amc_do_rename,       &
                                           amc_do_newnuc,       &
@@ -2442,6 +2500,13 @@ contains
             ! current tracer mixing ratios (TMRs)
 !           h2o2             = amc_q(ncol,:,i_h2o2)
             h2so4(i,j,:)     = amc_q(ncol,:,i_h2so4)
+
+! DEBUG-SS
+if ((i == 1) .and. (j == 1)) then
+print*, "The H2SO4 after modal_aero_amicphys_intr in time step",EmCtr,"is",minval(h2so4) , maxval(h2so4)
+endif
+! DEBUG-SS
+
             so2(i,j,:)       = amc_q(ncol,:,i_so2)
 !           dms              = amc_q(ncol,:,i_dms)
             nh3(i,j,:)       = amc_q(ncol,:,i_nh3)
@@ -2550,6 +2615,8 @@ contains
 
     call MAPL_TimerOn(mgState, '-EMISSIONS', __RC__)
 
+! Turning off emissions
+#if 0
 !   Seasalt emissions
 !   -----------------
     call MAM_SS_Emission(self%scheme, import, export, self%qa, self%femisSS, self%dt, __RC__)
@@ -2569,6 +2636,7 @@ contains
 !   Sulfate (SO4) emissions
 !   -----------------------
     call MAM_SO4_Emission(self%scheme, import, export, self%qa, self%dt, __RC__)
+#endif
 
     call MAPL_TimerOff(mgState, '-EMISSIONS', __RC__)
 
@@ -2583,6 +2651,13 @@ contains
             ! current tracer mixing ratios (TMRs)
             amc_q(ncol,:,i_h2o2)   = tiny(0.0)
             amc_q(ncol,:,i_h2so4)  = h2so4(i,j,:)
+
+! DEBUG-SS
+if ((i == 1) .and. (j == 1)) then
+print*,"The value of H2SO4 in mode merging in time step",EmCtr,"is", minval(amc_q(:,:,i_h2so4)) , maxval(amc_q(:,:,i_h2so4))
+endif
+! DEBUG-SS
+
             amc_q(ncol,:,i_so2)    = so2(i,j,:)
             amc_q(ncol,:,i_dms)    = tiny(0.0)               ! dms
             amc_q(ncol,:,i_nh3)    = nh3(i,j,:)
@@ -2666,6 +2741,11 @@ contains
                         ! current tracer mixing ratios (TMRs)
 !           h2o2             = amc_q(ncol,:,i_h2o2)
             h2so4(i,j,:)     = amc_q(ncol,:,i_h2so4)
+
+! DEBUG - SS
+print*,"The value of H2SO4 after modal_aero_calcsize in time step",EmCtr,"is",minval(h2so4) , maxval(h2so4)
+! DEBUG - SS
+
             so2(i,j,:)       = amc_q(ncol,:,i_so2)
 !           dms              = amc_q(ncol,:,i_dms)
             nh3(i,j,:)       = amc_q(ncol,:,i_nh3)
@@ -2828,7 +2908,7 @@ contains
     call SFC_Diagnostics(self%scheme, import, export, self%qa, self%Da, self%dt, __RC__)
     call MAPL_TimerOff(mgState, '--DIAGNOSTICS_SFC', __RC__)
 
-
+#if 0
     call MAPL_TimerOn(mgState,  '--DIAGNOSTICS_AOT', __RC__)
     call AOT_Diagnostics(self%scheme, import, export, self%qa, self%Da, self%mie_ait, &
                                                                         self%mie_acc, &
@@ -2839,6 +2919,12 @@ contains
                                                                         self%mie_cdu, &
                                                                         self%dt, __RC__)
     call MAPL_TimerOff(mgState, '--DIAGNOSTICS_AOT', __RC__)
+#endif
+
+! DEBUG-SS
+    print*, "End H2SO4_g_ at time step", EmCtr, "is", minval(h2so4_g_(1,1,:)) , maxval(h2so4_g_(1,1,:))
+    print*, "End H2SO4_a_ at time step", EmCtr, "is", minval(h2so4_a_(1,1,:)) , maxval(h2so4_a_(1,1,:))
+! DEBUG-SS
 
     call MAPL_TimerOff(mgState, '-DIAGNOSTICS', __RC__)
 
@@ -2847,7 +2933,10 @@ contains
     call MAPL_TimerOff(mgState, 'TOTAL', __RC__)
 
 !   All done
-!   --------
+!   --------i
+
+    print *, "End of the MAM Run routine"
+
     RETURN_(ESMF_SUCCESS)
 
    end subroutine Run_
@@ -2930,6 +3019,7 @@ contains
 
    call MAPL_SimpleBundleDestroy(self%Da)
 
+#if 0
 !  Delete the broad-band optical tables
 !  ------------------------------------
    call MAML_OpticsTableDestroy(MAM7_MieTable(1), __RC__)
@@ -2949,6 +3039,7 @@ contains
    call MAML_OpticsTableDestroy(self%mie_css, __RC__)
    call MAML_OpticsTableDestroy(self%mie_fdu, __RC__)
    call MAML_OpticsTableDestroy(self%mie_cdu, __RC__)
+#endif
 
 !  Delete the internal private state
 !  ---------------------------------
@@ -2957,6 +3048,9 @@ contains
 
 !  All done
 !  --------
+
+   print *, "End of the MAM finalize routine"
+
    RETURN_(ESMF_SUCCESS)
 
  end subroutine Finalize_
@@ -3059,6 +3153,7 @@ contains
     jm = dims(2)
     lm = dims(3)
 
+    print *, "End of the MAM extract subroutine"
 
     RETURN_(ESMF_SUCCESS)
 
@@ -3144,6 +3239,7 @@ contains
     short_name = trim(name) // state // trim(mode_short_name)
     long_name  = buff // trim(attachment_state) // ' aerosol particles in ' // trim(mode_long_name) // ' mode'
 
+    print *, "End of the MAM_GetFieldName subroutine"
 
     RETURN_(ESMF_SUCCESS)
 
@@ -3230,12 +3326,13 @@ contains
 !   Get Imports
 !   --------------
     call MAPL_GetPointer(import, rhoa,    'AIRDENS',   __RC__)
-    call MAPL_GetPointer(import, ple,     'PLE2',       __RC__)
+    call MAPL_GetPointer(import, ple,     'PLE',       __RC__)
     call MAPL_GetPointer(import, delp,    'DELP',      __RC__)
 
     call MAPL_GetPointer(import, pSO4_aq, 'pSO4_aq',   __RC__)
     call MAPL_GetPointer(import, pNH4_aq, 'pNH4_aq',   __RC__)
 
+print *, "In MAM_GC AIRDENS = ", rhoa
 
     if ((.not. associated(pSO4_aq)) .or. (.not. associated(pNH4_aq))) then
         print *, 'Skipping MAM::AqueousChemistry()'
@@ -3333,6 +3430,8 @@ contains
     deallocate(num_aq, __STAT__)
     deallocate(f,      __STAT__)
 
+    print *, "End of the MAM Aqueous Chemistry subroutine"
+
     RETURN_(ESMF_SUCCESS)
 
  end subroutine AqueousChemistry
@@ -3413,7 +3512,7 @@ contains
 !   Get Imports
 !   --------------
     call MAPL_GetPointer(import, rhoa,      'AIRDENS',   __RC__)
-    call MAPL_GetPointer(import, ple,       'PLE2',       __RC__)
+    call MAPL_GetPointer(import, ple,       'PLE',       __RC__)
     call MAPL_GetPointer(import, delp,      'DELP',      __RC__)
 
 !   Get Exports
@@ -3464,6 +3563,8 @@ contains
             end if
         end do
     end do
+
+    print *, "End of the MAM CIM diagnostics suboutine"
 
     RETURN_(ESMF_SUCCESS)
 
@@ -3628,12 +3729,14 @@ contains
         end if
     end do
 
+    print *, "End of the MAM SFC diagnostics subroutine"
 
     RETURN_(ESMF_SUCCESS)
 
  end subroutine SFC_Diagnostics
 
 
+#if 0
 !-------------------------------------------------------------------------
 !     NASA/GSFC, Global Modeling and Assimilation Office, Code 610.1     !
 !-------------------------------------------------------------------------
@@ -3669,6 +3772,7 @@ contains
 
     type(ESMF_State), intent(inout)        :: import     ! import fields
 
+#if 0
     type(MAML_OpticsTable)                 :: mie_ait
     type(MAML_OpticsTable)                 :: mie_acc
     type(MAML_OpticsTable)                 :: mie_pcm
@@ -3676,6 +3780,7 @@ contains
     type(MAML_OpticsTable)                 :: mie_css
     type(MAML_OpticsTable)                 :: mie_fdu
     type(MAML_OpticsTable)                 :: mie_cdu
+#endif
 
     real,    intent(in)                    :: cdt        ! chemical timestep (secs)
 
@@ -4109,10 +4214,12 @@ contains
   deallocate(ext,  sca,  ssa,  asy, __STAT__)
   deallocate(ext_, sca_, asy_,      __STAT__)
 
+  print *, "End of the MAM AOT Diagnostics"
+
   RETURN_(ESMF_SUCCESS)
 
  end subroutine AOT_Diagnostics
-
+#endif 
 
 !! --
 
@@ -4150,7 +4257,7 @@ logical function isDataDrivenGC_(GC, rc)
 end function isDataDrivenGC_
 
 
-
+#if 0
  subroutine aerosol_optics(state, rc)
 
   use MAM_ComponentsDataMod, only : MAM_WATER_COMPONENT_DENSITY,        &
@@ -4540,10 +4647,12 @@ end function isDataDrivenGC_
   deallocate(ext,  sca,  ssa,  asy, __STAT__)
   deallocate(ext_, sca_, asy_,      __STAT__)
 
+  print *, "End of the MAM Aerosol Optics subroutine"
+
   RETURN_(ESMF_SUCCESS)
 
  end subroutine aerosol_optics
-
+#endif
 
 subroutine aerosol_activation_properties(state, rc)
 
@@ -4972,6 +5081,7 @@ subroutine aerosol_activation_properties(state, rc)
 
   end select
 
+  print *, "End of the aerosol activation properties subroutine"
 
   RETURN_(ESMF_SUCCESS)
 

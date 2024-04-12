@@ -19,7 +19,7 @@
 
    use Chem_ConstModx,   only: grav
 
-   use DustEmissionMod, only: MAM_DustEmissionGOCART, MAM_DustEmission
+!   use DustEmissionMod, only: MAM_DustEmissionGOCART, MAM_DustEmission
 
    use MAM_BaseMod
    use MAM3_DataMod
@@ -35,7 +35,7 @@
 ! !PUBLIIC MEMBER FUNCTIONS:
 !
 
-   PUBLIC  MAM_DU_Emission
+!   PUBLIC  MAM_DU_Emission
    PUBLIC  MAM_DU_Diagnostics
 
 !
@@ -54,6 +54,8 @@
 
 CONTAINS
 
+!Switching off emissions
+#if 0
 !-------------------------------------------------------------------------
 !     NASA/GSFC, Global Modeling and Assimilation Office, Code 610.1     !
 !-------------------------------------------------------------------------
@@ -225,9 +227,10 @@ CONTAINS
 
 
    emission_total = 0.0
-   call MAM_DustEmissionGOCART(i1, i2, j1, j2, km, &
-                               fraclake, gwettop, oro, u10m, v10m, &
-                               emission_total, rc)
+! Switching off emissions
+!   call MAM_DustEmissionGOCART(i1, i2, j1, j2, km, &
+!                               fraclake, gwettop, oro, u10m, v10m, &
+!                               emission_total, rc)
 
    ! apply the dust emission tuning coefficient [kg s2 m-5] and Ginoux dust source function
    emission_total = (f_emiss * 1e-9) * fsrc * emission_total
@@ -243,13 +246,19 @@ CONTAINS
        emission_num  = 0.0
        emission_mass = 0.0
 
-       call MAM_DustEmission(i1, i2, j1, j2, km, &
-                             rLow, rUp, &
-                             emission_total, &
-                             emission_mass, emission_num, rc)
+! Switching off emissions
+!       call MAM_DustEmission(i1, i2, j1, j2, km, &
+!                             rLow, rUp, &
+!                             emission_total, &
+!                             emission_mass, emission_num, rc)
 
        emission_mass = emission_mass
        emission_num  = emission_num
+
+       print *, "Emission Total", minval(emission_total), maxval(emission_total)
+       print *, "Dust source", minval(fsrc), maxval(fsrc)
+       print *, "10m wind", minval((U10m**2+v10m**2)**0.5), maxval((U10m**2+v10m**2)**0.5)
+       print *, "Mask", minval(oro), maxval(oro)
 
 #ifdef DEBUG
        call pmaxmin('DU: emission_total ', emission_total, qmin, qmax, ijl, 1, 1.)
@@ -301,7 +310,7 @@ CONTAINS
    RETURN_(ESMF_SUCCESS)
 
  end subroutine MAM_DU_Emission
-
+#endif
 
 !-------------------------------------------------------------------------
 !     NASA/GSFC, Global Modeling and Assimilation Office, Code 610.1     !

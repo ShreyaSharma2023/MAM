@@ -661,6 +661,11 @@ main_i_loop: &
          qgcm2(lmz)    = max( 0.0_r8, q_precldchem(i,k,lmz) )
          qqcwgcm2(lmz) = max( 0.0_r8, qqcw_precldchem(i,k,lmz) )
          qgcm3(lmz)    = max( 0.0_r8, q(i,k,lmz) )
+
+! DEBUG - SS
+print*,"m_a_a_i qgcm3(2) is",q(1,1,2)
+! DEBUG - SS
+
          qqcwgcm3(lmz) = max( 0.0_r8, qqcw(i,k,lmz) )
       end do
       qaerwatgcm3(:) = 0.0_r8
@@ -707,6 +712,11 @@ main_i_loop: &
             qsub3(lmz,jclea) = qsub2(lmz,jclea)
             ! gas in cloud sub-area then determined by grid-cell mean and clear values
             qsub3(lmz,jcldy) = (qgcm3(lmz) - fclea*qsub3(lmz,jclea))/fcldy
+
+! DEBUG - SS
+print*, "m_a_a_i set gas mixing ratios in sub areas qsub3(2,:) is",qsub3(2,:)
+! DEBUG - SS
+
             ! check that this does not produce a negative value
             if (qsub3(lmz,jcldy) < 0.0_r8) then
                qsub3(lmz,jcldy) = 0.0_r8
@@ -782,6 +792,11 @@ main_i_loop: &
 
             qsub3(la,jclea) = qgcm3(la)*tmp_aa_clea
             qsub3(la,jcldy) = qgcm3(la)*tmp_aa_cldy
+
+! DEBUG - SS
+print*, "m_a_a_i set aerosol mixing ratios in sub areas qsub3(2,:) is",qsub3(2,:)
+! DEBUG - SS
+
             qqcwsub3(lc,jclea) = 0.0_r8
             qqcwsub3(lc,jcldy) = qqcwgcm3(lc)/fcldy
 
@@ -823,6 +838,10 @@ main_i_loop: &
             qqcwsub3(lmz,jcldy) = qqcwgcm3(lmz)
          end do
 
+! DEBUG - SS
+print*, "m_a_a_i All cloudy or all clear cells qsub3(2,:)",qsub3(2,:)
+! DEBUG - SS
+
       else
 ! this should not happen
          write(tmp_str,'(a,3(1x,i10))') &
@@ -849,6 +868,9 @@ main_i_loop: &
          qqcwsub3(:,j) = 0.0_r8
       end if
 
+! DEBUG - SS
+print*,"m_a_a_i Something with water uptake qsub3(2,:)",qsub3(2,:)
+! DEBUG - SS
 
 ! diagnostics after forming sub-areas
 #if ( defined( CAMBOX_ACTIVATE_THIS ) )
@@ -1027,6 +1049,10 @@ main_i_loop: &
             end if
          end if
       end do
+
+! DEBUG-SS
+print*, "m_a_a_i The new value of q in qgcm4(lmz) is",q(1,1,2)
+! DEBUG-SS
 
 #if ( defined( CAMBOX_ACTIVATE_THIS ) )
       if (iqtend_cond <= nqtendbb) q_tendbb(i,k,:,iqtend_cond) = qgcm_tendaa(:,iqtend_cond)

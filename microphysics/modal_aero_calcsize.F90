@@ -472,6 +472,9 @@ do_aitacc_transfer_if_block2: &
       end if
 #endif
 
+print*, " ***DEBUG*** modal aero calcsize is running"
+
+
 return
 end subroutine modal_aero_calcsize_init
 
