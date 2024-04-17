@@ -1,273 +1,734 @@
 #include "MAPL_Generic.h"
 
-program mam_box_model
+program mam_optics_calculator
 
-    AEROSOL_MICROPHYSICS: if (self%microphysics) then
+!-----------------------------------------------------------------------
+!     NASA/GSFC, Global Modeling and Assimilation Office, Code 610.1   !
+!-----------------------------------------------------------------------
+!BOP
+!
+! !ROUTINE: mam_optics_calculator --- Extinction calculator
+!
+! !INTERFACE:
+!
+!      Usage:  mam_optics_calculator.xx
+!
+! !USES:
+!
 
-    do j = 1, jm
-        do i = 1, im
+  use ESMF
 
-            amc_t(ncol, :)    = T(i, j, :)              ! temperature at model levels (K)
-            amc_pmid(ncol, :) = 0.5*(ple(i,j,0:lm-1)+ple(i,j,1:lm)) ! pressure at layer center (Pa)
-            amc_pdel(ncol, :) = delp(i,j,:)             ! pressure thickness of layer (Pa)
-            amc_zm(ncol, :)   = zle(i,j,1:lm)           ! altitude (above ground) at layer center (m)
-            amc_pblh(ncol)    = zpbl(i,j)               ! planetary boundary layer depth (m)
+  use MAPL
 
-            amc_qv(ncol, :)   = Q(i,j,:)                ! specific humidity (kg/kg)
-            amc_cld(ncol, :)  = fcld(i,j,:)             ! cloud fraction
-            amc_rh(ncol, :)   = RH(i,j,:)               ! relative humidity
+  use MAM_BaseMod
+  use MAM3_DataMod, only: MAM3_MODE_NAME, MAM3_MODES 
+  use MAM7_DataMod, only: MAM7_MODE_NAME, MAM7_MODES
 
-            ! current tracer mixing ratios (TMRs)
-
-            amc_qqcw(:ncol,:pver,:pcnstxx)            = tiny(0.0)
-            amc_qqcw_precldchem(:ncol,:pver,:pcnstxx) = tiny(0.0)  ! qqcw TMRs before cloud chemistry
-
-
-            ! units mixing ratios should be 'mol/mol-air' and '#/kmol-air'
-            amc_q(ncol,:,i_h2o2)   = tiny(0.0)               ! h2o2
-            amc_q(ncol,:,i_h2so4)  = h2so4(i,j,:)
-            amc_q(ncol,:,i_so2)    = so2(i,j,:)
-            amc_q(ncol,:,i_dms)    = tiny(0.0)               ! dms
-            amc_q(ncol,:,i_nh3)    = nh3(i,j,:)
-            amc_q(ncol,:,i_soag)   = soa_g(i,j,:)
-            ! accumulation mode
-            amc_q(ncol,:,i_so4_a1) = acc_a_so4(i,j,:) * (mw_air / adv_mass(i_so4_a1))
-            amc_q(ncol,:,i_nh4_a1) = acc_a_nh4(i,j,:) * (mw_air / adv_mass(i_nh4_a1))
-            amc_q(ncol,:,i_pom_a1) = acc_a_pom(i,j,:) * (mw_air / adv_mass(i_pom_a1))
-            amc_q(ncol,:,i_soa_a1) = acc_a_soa(i,j,:) * (mw_air / adv_mass(i_soa_a1))
-            amc_q(ncol,:,i_bc_a1)  = acc_a_bc(i,j,:)  * (mw_air / adv_mass(i_bc_a1))
-            amc_q(ncol,:,i_ncl_a1) = acc_a_ncl(i,j,:) * (mw_air / adv_mass(i_ncl_a1))
-            amc_q(ncol,:,i_num_a1) = acc_a_num(i,j,:) *  mw_air
-            ! aitken mode
-            amc_q(ncol,:,i_so4_a2) = ait_a_so4(i,j,:) * (mw_air / adv_mass(i_so4_a2))
-            amc_q(ncol,:,i_nh4_a2) = ait_a_nh4(i,j,:) * (mw_air / adv_mass(i_nh4_a2))
-            amc_q(ncol,:,i_soa_a2) = ait_a_soa(i,j,:) * (mw_air / adv_mass(i_soa_a2))
-            amc_q(ncol,:,i_ncl_a2) = ait_a_ncl(i,j,:) * (mw_air / adv_mass(i_ncl_a2))
-            amc_q(ncol,:,i_num_a2) = ait_a_num(i,j,:) *  mw_air
-            ! primary carbon mode
-            amc_q(ncol,:,i_pom_a3) = pcm_a_pom(i,j,:) * (mw_air / adv_mass(i_pom_a3))
-            amc_q(ncol,:,i_bc_a3)  = pcm_a_bc(i,j,:)  * (mw_air / adv_mass(i_bc_a3))
-            amc_q(ncol,:,i_num_a3) = pcm_a_num(i,j,:) *  mw_air
-            ! fine seasalt mode
-            amc_q(ncol,:,i_ncl_a4) = fss_a_ncl(i,j,:) * (mw_air / adv_mass(i_ncl_a4))
-            amc_q(ncol,:,i_so4_a4) = fss_a_so4(i,j,:) * (mw_air / adv_mass(i_so4_a4))
-            amc_q(ncol,:,i_nh4_a4) = fss_a_nh4(i,j,:) * (mw_air / adv_mass(i_nh4_a4))
-            amc_q(ncol,:,i_num_a4) = fss_a_num(i,j,:) *  mw_air
-            ! fine dust mode
-            amc_q(ncol,:,i_dst_a5) = fdu_a_dst(i,j,:) * (mw_air / adv_mass(i_dst_a5))
-            amc_q(ncol,:,i_so4_a5) = fdu_a_so4(i,j,:) * (mw_air / adv_mass(i_so4_a5))
-            amc_q(ncol,:,i_nh4_a5) = fdu_a_nh4(i,j,:) * (mw_air / adv_mass(i_nh4_a5))
-            amc_q(ncol,:,i_num_a5) = fdu_a_num(i,j,:) *  mw_air
-            ! coarse seasalt mode
-            amc_q(ncol,:,i_ncl_a6) = css_a_ncl(i,j,:) * (mw_air / adv_mass(i_ncl_a6))
-            amc_q(ncol,:,i_so4_a6) = css_a_so4(i,j,:) * (mw_air / adv_mass(i_so4_a6))
-            amc_q(ncol,:,i_nh4_a6) = css_a_nh4(i,j,:) * (mw_air / adv_mass(i_nh4_a6))
-            amc_q(ncol,:,i_num_a6) = css_a_num(i,j,:) *  mw_air
-            ! coarse dust mode
-            amc_q(ncol,:,i_dst_a7) = cdu_a_dst(i,j,:) * (mw_air / adv_mass(i_dst_a7))
-            amc_q(ncol,:,i_so4_a7) = cdu_a_so4(i,j,:) * (mw_air / adv_mass(i_so4_a7))
-            amc_q(ncol,:,i_nh4_a7) = cdu_a_nh4(i,j,:) * (mw_air / adv_mass(i_nh4_a7))
-            amc_q(ncol,:,i_num_a7) = cdu_a_num(i,j,:) *  mw_air
+  implicit none
 
 
-            amc_q_pregaschem(:ncol,:pver,:pcnstxx) = amc_q      ! q TMRs    before gas-phase chemistry
+! !DESCRIPTION: 2D/3D Aerosol Optics Calculator.
+!
+! !REVISION HISTORY:
+!
+!  27Mar2013  A. Darmenov  Initial Implementation
+!
+!EOP
+!-----------------------------------------------------------------------
 
-! DEBUG-SS
-if ((i == 1) .and. (j == 1)) then
-print*, "The value of H2SO4 in aerosol microphysics in time step",EmCtr,"is",minval(amc_q(:,:,i_h2so4)) , maxval(amc_q(:,:,i_h2so4))
-endif
-! DEBUG-SS
 
-#if (0)
-            ! compute pregaschem using tendencies
-            amc_q_pregaschem(ncol,:,i_h2so4) = h2so4(i,j,:) - (ddt_h2so4_gas(i,j,:) + ddt_h2so4_aq(i,j,:))*self%dt
-            amc_q_pregaschem(ncol,:,i_so2)   = so2(i,j,:)   - (ddt_so2_gas(i,j,:)   + ddt_so2_aq(i,j,:)  )*self%dt
-            amc_q_pregaschem(ncol,:,i_nh3)   = nh3(i,j,:)   - (ddt_nh3_gas(i,j,:)   + ddt_nh3_aq(i,j,:)  )*self%dt
-#else
-            ! ...or use the pregas exports
-            amc_q_pregaschem(ncol,:,i_h2so4) = h2so4_g_(i,j,:)
+                       __Iam__('mam_box_model.xx')
 
-! DEBUG-SS
-if ((i == 1) .and. (j == 1)) then
-print *, "The value of H2SO4 at time step", EmCtr, "after copying the pregaschem value is ", minval(amc_q_pregaschem(:,:,i_h2so4)) , maxval(amc_q_pregaschem(:,:,i_h2so4))
-endif
-! DEBUG-SS
 
-            amc_q_pregaschem(ncol,:,i_so2)   = so2_g_(i,j,:)
-            amc_q_pregaschem(ncol,:,i_nh3)   = nh3_g_(i,j,:)
+  call main(rc=status)  
+  if (MAPL_VRFY(status, Iam, __LINE__)) call MAPL_Abort()
+
+  call exit(status)
+
+contains
+
+
+subroutine main(rc)
+
+  implicit none
+
+  integer, optional, intent(out)  :: rc           ! return code
+
+! Local variables
+! ---------------
+  type(ESMF_VM)                   :: vm           ! global VM
+  type(MAM_OpticsCalculatorSetup) :: setup        ! setup
+
+  type(MAM_Scheme)                :: mam          ! MAM scheme/configuration
+
+  type(ESMF_State)                :: aero_state   ! aerosol state
+
+  type(MAPL_SimpleBundle)         :: q            ! aerosol mixing ratio
+  type(MAPL_SimpleBundle)         :: o            ! 
+
+  type(ESMF_Field)                :: field
+  type(ESMF_FieldBundle)          :: optics       ! optics (extinction, etc.) parameters
+  type(ESMF_FieldBundle)          :: bundle       ! field bundle
+
+
+  type(MAML_OpticsTable)          :: lut          ! aerosol optics lookup table
+
+  character(len=MAM_MAXSTR)       :: field_name   ! field name
+  character(len=MAM_MAXSTR)       :: mode_name    ! aerosol mode name
+  character(len=MAM_MAXSTR)       :: species_name ! aerosol species name
+  integer                         :: n_species    ! number of aerosol species
+  integer                         :: m, s         ! mode and species indexes
+  integer                         :: iq           ! field index
+
+  character(len=1024)             :: field_list   ! list of comma separated field names
+
+  integer                         :: im, jm, km   ! local dim sizes
+
+  integer                         :: i, j, k, n   ! loop counters 
+
+#ifdef __PGI
+  interface
+     subroutine optics_compute(aero_state, rc)
+     use ESMF_StateMod
+     implicit none
+     type(ESMF_State)     :: aero_state
+     integer, intent(out) :: rc
+     end subroutine
+  end interface
 #endif
 
 
-            amc_q_precldchem(:ncol,:pver,:pcnstxx) = amc_q      ! q TMRs    before cloud chemistry
-#if (0)
-            ! compute preaqchem using tendencies
-            amc_q_precldchem(ncol,:,i_h2so4)  = h2so4(i,j,:) - (ddt_h2so4_aq(i,j,:))*self%dt
-            amc_q_precldchem(ncol,:,i_so2)    = so2(i,j,:)   - (ddt_so2_aq(i,j,:)  )*self%dt
-            amc_q_precldchem(ncol,:,i_nh3)    = nh3(i,j,:)   - (ddt_nh3_aq(i,j,:)  )*self%dt
-#else
-            ! ...or use the preaq exports
-            amc_q_precldchem(ncol,:,i_h2so4)  = h2so4_a_(i,j,:)
-            amc_q_precldchem(ncol,:,i_so2)    = so2_a_(i,j,:)
-            amc_q_precldchem(ncol,:,i_nh3)    = nh3_a_(i,j,:)
-#endif
-            amc_q_precldchem(ncol,:,i_so4_a1) = acc_a_so4_(i,j,:) * (mw_air / adv_mass(i_so4_a1))
-            amc_q_precldchem(ncol,:,i_nh4_a1) = acc_a_nh4_(i,j,:) * (mw_air / adv_mass(i_nh4_a1))
-            amc_q_precldchem(ncol,:,i_so4_a2) = ait_a_so4_(i,j,:) * (mw_air / adv_mass(i_so4_a2))
-            amc_q_precldchem(ncol,:,i_nh4_a2) = ait_a_nh4_(i,j,:) * (mw_air / adv_mass(i_nh4_a2))
-            amc_q_precldchem(ncol,:,i_so4_a4) = fss_a_so4_(i,j,:) * (mw_air / adv_mass(i_so4_a4))
-            amc_q_precldchem(ncol,:,i_nh4_a4) = fss_a_nh4_(i,j,:) * (mw_air / adv_mass(i_nh4_a4))
-            amc_q_precldchem(ncol,:,i_so4_a5) = fdu_a_so4_(i,j,:) * (mw_air / adv_mass(i_so4_a5))
-            amc_q_precldchem(ncol,:,i_nh4_a5) = fdu_a_nh4_(i,j,:) * (mw_air / adv_mass(i_nh4_a5))
-            amc_q_precldchem(ncol,:,i_so4_a6) = css_a_so4_(i,j,:) * (mw_air / adv_mass(i_so4_a6))
-            amc_q_precldchem(ncol,:,i_nh4_a6) = css_a_nh4_(i,j,:) * (mw_air / adv_mass(i_nh4_a6))
-            amc_q_precldchem(ncol,:,i_so4_a7) = cdu_a_so4_(i,j,:) * (mw_air / adv_mass(i_so4_a7))
-            amc_q_precldchem(ncol,:,i_nh4_a7) = cdu_a_nh4_(i,j,:) * (mw_air / adv_mass(i_nh4_a7))
+                        __Iam__('mam_optics_calculator::main')
+
+! Initialize the ESMF 
+! -------------------
+  call ESMF_Initialize(vm=vm, logKindFlag=ESMF_LOGKIND_NONE, __RC__)
+  call ESMF_CalendarSetDefault(calkindflag=ESMF_CALKIND_GREGORIAN, __RC__)
+
+! Show text banner
+! ----------------
+  if (MAPL_am_I_root()) then
+      call text_banner()
+  end if
+
+! Initialize the setup
+! --------------------
+  call setup_initialize(setup, config_file, __RC__)
 
 
-            amc_dgn_a_dry(pcols,:,1) = acc_dgn_dry(i,j,:)          ! dry geo. mean dia. (m) of number PSD
-            amc_dgn_a_dry(pcols,:,2) = ait_dgn_dry(i,j,:)
-            amc_dgn_a_dry(pcols,:,3) = pcm_dgn_dry(i,j,:)
-            amc_dgn_a_dry(pcols,:,4) = fss_dgn_dry(i,j,:)
-            amc_dgn_a_dry(pcols,:,5) = fdu_dgn_dry(i,j,:)
-            amc_dgn_a_dry(pcols,:,6) = css_dgn_dry(i,j,:)
-            amc_dgn_a_dry(pcols,:,7) = cdu_dgn_dry(i,j,:)
-
-            amc_dgn_a_wet(pcols,:,1) = acc_dgn_wet(i,j,:)          ! wet geo. mean dia. (m) of number PSD
-            amc_dgn_a_wet(pcols,:,2) = ait_dgn_wet(i,j,:)
-            amc_dgn_a_wet(pcols,:,3) = pcm_dgn_wet(i,j,:)
-            amc_dgn_a_wet(pcols,:,4) = fss_dgn_wet(i,j,:)
-            amc_dgn_a_wet(pcols,:,5) = fdu_dgn_wet(i,j,:)
-            amc_dgn_a_wet(pcols,:,6) = css_dgn_wet(i,j,:)
-            amc_dgn_a_wet(pcols,:,7) = cdu_dgn_wet(i,j,:)
+! Set MAM scheme
+! --------------
+  call MAM_SchemeInit(mam, setup%scheme_id, __RC__)
 
 
-            amc_wetdens_host(:pcols,:pver,:ntot_amode) = 1.0e3     ! interstitial aerosol wet density (kg/m3)
-            amc_qaerwat(:pcols,:pver,:ntot_amode)      = 0.0       ! optional, aerosol water mixing ratio (kg/kg)
-            amc_qaerwat(pcols,:,1) = acc_a_wtr(i,j,:)              ! aerosol water
-            amc_qaerwat(pcols,:,2) = ait_a_wtr(i,j,:)
-            amc_qaerwat(pcols,:,3) = pcm_a_wtr(i,j,:)
-            amc_qaerwat(pcols,:,4) = fss_a_wtr(i,j,:)
-            amc_qaerwat(pcols,:,5) = fdu_a_wtr(i,j,:)
-            amc_qaerwat(pcols,:,6) = css_a_wtr(i,j,:)
-            amc_qaerwat(pcols,:,7) = cdu_a_wtr(i,j,:)
+! Create a state
+  aero_state = ESMF_StateCreate(name='AERO_STATE', __RC__)
 
-            amc_q_coltendaa        = 0.0d0                         ! column integrated tendencies diagnostics
-            amc_qqcw_coltendaa     = 0.0d0                         ! --dito-- but for qqcw
+! Create optics bundle and fill it with empty fields
+! --------------------------------------------------
+  optics = ESMF_FieldBundleCreate(name='MAM::OPTICS', __RC__)
+  call optics_bundle_initialize(optics, setup%grid, mam, __RC__)
 
-
-            ! the modal_aero_amicphys_intr() subroutine does in the order listed below:
-            !
-            ! - in clear grid cells
-            !    1. condensation / gas-aerosol-exchange of H2SO4, NH3, H2O
-            !    2. renaming after "continuous growth"
-            !    3. nucleation (new particle formation)
-            !    4. coagulation
-            !    5. primary carbon aging
-            !
-            ! - in cloudy grid cells
-            !    1. condensation / gas-aerosol-exchange
-            !    2. renaming after "continuous growth"
-            !    3. primary carbon aging
-
-! DEBUG - SS
-if ((i == 1) .and. (j == 1)) then
-print*, "The value of temperature is", minval(amc_t), maxval(amc_t)
-endif
-! DEBUG - SS
-
-            call modal_aero_amicphys_intr(amc_do_gasaerexch,   &
-                                          amc_do_rename,       &
-                                          amc_do_newnuc,       &
-                                          amc_do_coag,         &
-                                          amc_lchnk,           &
-                                          ncol,                &
-                                          amc_nstep,           &
-                                          amc_loffset,         &
-                                          amc_deltat,          &
-                                          amc_latndx,          &
-                                          amc_lonndx,          &
-                                          amc_t,               &
-                                          amc_pmid,            &
-                                          amc_pdel,            &
-                                          amc_zm,              &
-                                          amc_pblh,            &
-                                          amc_qv,              &
-                                          amc_cld,             &
-                                          amc_rh,              &
-                                          amc_q,               &
-                                          amc_qqcw,            &
-                                          amc_q_pregaschem,    &
-                                          amc_q_precldchem,    &
-                                          amc_qqcw_precldchem, &
-                                          amc_dgn_a_dry,       &
-                                          amc_dgn_a_wet,       &
-                                          amc_wetdens_host,    &
-                                          amc_q_coltendaa,     &
-                                          amc_qqcw_coltendaa)! & amc_qaerwat -- optional)
+! Add the optics bundle to the aero state
+! ---------------------------------------
+  call ESMF_StateAdd(aero_state, (/optics/), __RC__)
 
 
-            ! current tracer mixing ratios (TMRs)
-!           h2o2             = amc_q(ncol,:,i_h2o2)
-            h2so4(i,j,:)     = amc_q(ncol,:,i_h2so4)
 
-! DEBUG-SS
-if ((i == 1) .and. (j == 1)) then
-print*, "The H2SO4 after modal_aero_amicphys_intr in time step",EmCtr,"is",minval(h2so4) , maxval(h2so4)
-endif
-! DEBUG-SS
+  if (setup%verbose .and. .false.) then
+      call ESMF_StateGet(aero_state, itemCount=n, __RC__)
 
-            so2(i,j,:)       = amc_q(ncol,:,i_so2)
-!           dms              = amc_q(ncol,:,i_dms)
-            nh3(i,j,:)       = amc_q(ncol,:,i_nh3)
-            soa_g(i,j,:)     = amc_q(ncol,:,i_soag)
-            ! accumulation mode
-            acc_a_so4(i,j,:) = amc_q(ncol,:,i_so4_a1) * (adv_mass(i_so4_a1) / mw_air)
-            acc_a_nh4(i,j,:) = amc_q(ncol,:,i_nh4_a1) * (adv_mass(i_nh4_a1) / mw_air)
-            acc_a_pom(i,j,:) = amc_q(ncol,:,i_pom_a1) * (adv_mass(i_pom_a1) / mw_air)
-            acc_a_soa(i,j,:) = amc_q(ncol,:,i_soa_a1) * (adv_mass(i_soa_a1) / mw_air)
-            acc_a_bc(i,j,:)  = amc_q(ncol,:,i_bc_a1)  * (adv_mass(i_bc_a1)  / mw_air)
-            acc_a_ncl(i,j,:) = amc_q(ncol,:,i_ncl_a1) * (adv_mass(i_ncl_a1) / mw_air)
-            acc_a_num(i,j,:) = amc_q(ncol,:,i_num_a1) / mw_air
-            ! aitken mode
-            ait_a_so4(i,j,:) = amc_q(ncol,:,i_so4_a2) * (adv_mass(i_so4_a2) / mw_air)
-            ait_a_nh4(i,j,:) = amc_q(ncol,:,i_nh4_a2) * (adv_mass(i_nh4_a2) / mw_air)
-            ait_a_soa(i,j,:) = amc_q(ncol,:,i_soa_a2) * (adv_mass(i_soa_a2) / mw_air)
-            ait_a_ncl(i,j,:) = amc_q(ncol,:,i_ncl_a2) * (adv_mass(i_ncl_a2) / mw_air)
-            ait_a_num(i,j,:) = amc_q(ncol,:,i_num_a2) / mw_air
-            ! primary carbon mode
-            pcm_a_pom(i,j,:) = amc_q(ncol,:,i_pom_a3) * (adv_mass(i_pom_a3) / mw_air)
-            pcm_a_bc(i,j,:)  = amc_q(ncol,:,i_bc_a3)  * (adv_mass(i_bc_a3)  / mw_air)
-            pcm_a_num(i,j,:) = amc_q(ncol,:,i_num_a3) / mw_air
-            ! fine seasalt mode
-            fss_a_ncl(i,j,:) = amc_q(ncol,:,i_ncl_a4) * (adv_mass(i_ncl_a4) / mw_air)
-            fss_a_so4(i,j,:) = amc_q(ncol,:,i_so4_a4) * (adv_mass(i_so4_a4) / mw_air)
-            fss_a_nh4(i,j,:) = amc_q(ncol,:,i_nh4_a4) * (adv_mass(i_nh4_a4) / mw_air)
-            fss_a_num(i,j,:) = amc_q(ncol,:,i_num_a4) / mw_air
-            ! fine dust mode
-            fdu_a_dst(i,j,:) = amc_q(ncol,:,i_dst_a5) * (adv_mass(i_dst_a5) / mw_air)
-            fdu_a_so4(i,j,:) = amc_q(ncol,:,i_so4_a5) * (adv_mass(i_so4_a5) / mw_air)
-            fdu_a_nh4(i,j,:) = amc_q(ncol,:,i_nh4_a5) * (adv_mass(i_nh4_a5) / mw_air)
-            fdu_a_num(i,j,:) = amc_q(ncol,:,i_num_a5) / mw_air
-            ! coarse seasalt mode
-            css_a_ncl(i,j,:) = amc_q(ncol,:,i_ncl_a6) * (adv_mass(i_ncl_a6) / mw_air)
-            css_a_so4(i,j,:) = amc_q(ncol,:,i_so4_a6) * (adv_mass(i_so4_a6) / mw_air)
-            css_a_nh4(i,j,:) = amc_q(ncol,:,i_nh4_a6) * (adv_mass(i_nh4_a6) / mw_air)
-            css_a_num(i,j,:) = amc_q(ncol,:,i_num_a6) / mw_air
-            ! coarse dust mode
-            cdu_a_dst(i,j,:) = amc_q(ncol,:,i_dst_a7) * (adv_mass(i_dst_a7) / mw_air)
-            cdu_a_so4(i,j,:) = amc_q(ncol,:,i_so4_a7) * (adv_mass(i_so4_a7) / mw_air)
-            cdu_a_nh4(i,j,:) = amc_q(ncol,:,i_nh4_a7) * (adv_mass(i_nh4_a7) / mw_air)
-            cdu_a_num(i,j,:) = amc_q(ncol,:,i_num_a7) / mw_air
+      _ASSERT(n > 0,'needs informative message')
 
-            ! save the colmn-integrated diagnostics
-            q_coltend_cond_(i,j,:)   = amc_q_coltendaa(ncol,:,iqtend_cond)
-            q_coltend_rename_(i,j,:) = amc_q_coltendaa(ncol,:,iqtend_rnam)
-            q_coltend_nucl_(i,j,:)   = amc_q_coltendaa(ncol,:,iqtend_nnuc)
-            q_coltend_coag_(i,j,:)   = amc_q_coltendaa(ncol,:,iqtend_coag)
-            qqcw_coltend_rename_(i,j,:) = amc_q_coltendaa(ncol,:,iqqcwtend_rnam)
-        end do
-    end do
+      call ESMF_StateGet(aero_state, 'MAM::OPTICS', bundle, __RC__)
+      o = MAPL_SimpleBundleCreate(bundle, __RC__)
 
-    end if AEROSOL_MICROPHYSICS
+      call MAPL_SimpleBundlePrint(o)
+      call MAPL_SimpleBundleDestroy(o, __RC__)
+  end if
 
-end program mam_box_model
+
+! Exercise callback mechanism
+! ---------------------------
+  call ESMF_MethodAdd(aero_state, label='OPTICS_COMPUTE', userRoutine=optics_compute, __RC__)
+
+  call ESMF_MethodExecute(aero_state, label='OPTICS_COMPUTE', userRc=rc, __RC__)
+
+  if (setup%verbose) then
+      call ESMF_StateGet(aero_state, itemCount=n, __RC__)
+
+      _ASSERT(n > 0,'needs informative message')
+
+      call ESMF_StateGet(aero_state, 'MAM::OPTICS', bundle, __RC__)
+      o = MAPL_SimpleBundleCreate(bundle, __RC__)
+
+      call MAPL_SimpleBundlePrint(o)
+      call MAPL_SimpleBundleDestroy(o, __RC__)
+  end if
+
+
+
+  loop_modes: do m = 1, mam%n_modes
+  
+      ! ------------------------------------------------------------------
+      ! Read the 3D aerosol fields
+      ! ------------------------------------------------------------------
+
+      ! construct a list with 3D aerosol fields to read
+      field_list = ''
+
+      call MAM_AerosolModeGet(mam%mode(m), name=mode_name, n_species=n_species, __RC__)
+
+      ! interstitial aerosol tracers 
+      field_name = 'NUM_A_' // trim(mode_name)
+      field_list = trim(field_list) // trim(field_name) // ','
+
+      ! interstitial aerosol tracers
+      field_name = 'WTR_A_' // trim(mode_name)
+      field_list = trim(field_list) // trim(field_name) // ','
+
+      do s = 1, n_species
+          species_name = mam%mode(m)%species(s)%name
+          field_name  = trim(species_name) // '_A_' // trim(mode_name)
+
+          ! append to the list of fields to read
+          field_list  = trim(field_list) // trim(field_name) // ','
+      end do
+
+      ! strip the trailing comma from the list
+      field_list = trim(field_list(1:len_trim(field_list)-1))
+
+      ! read the aerosol fields and bundle them
+      q = MAPL_SimpleBundleRead(setup%aerosol_file,    &
+                                setup%aerosol_file,    &
+                                setup%grid,            &
+                                setup%time,            &
+                                only_vars=field_list,  &
+                                verbose=setup%verbose, &
+                                __RC__)
+
+      if (setup%verbose) call MAPL_SimpleBundlePrint(q) 
+
+      ! get the size of local dims
+      im = size(q%coords%lons, 1)
+      jm = size(q%coords%lons, 2)
+      km = size(q%coords%levs)
+ 
+
+      ! ------------------------------------------------------------------
+      ! Read the optics lookup table
+      ! ------------------------------------------------------------------
+      _ASSERT(associated(setup%optics_lut),'needs informative message')
+      _ASSERT(associated(setup%mode),'needs informative message')
+      _ASSERT(size(setup%mode) == size(setup%optics_lut),'needs informative message')
+
+      n = 0
+      do n = 1, size(setup%mode)
+          if (setup%mode(n) == mode_name) then
+              exit
+          end if
+      end do
+
+      _ASSERT(n > 0,'needs informative message')
+
+      lut = MAML_OpticsTableCreate(setup%optics_lut(n), __RC__)
+
+      call MAML_OpticsTableRead(lut, __RC__)
+
+
+      ! ------------------------------------------------------------------ 
+      ! Compute the aerosol optical quantities
+      ! ------------------------------------------------------------------
+
+!     call MAML_OpticsCalculator(o, q, lut, __RC__)
+
+      call MAML_OpticsTableDestroy(lut, __RC__)
+
+      !TODO - free all associated memory, e.g., ESMF fields, bundle, etc.
+      call MAPL_SimpleBundleDestroy(q, __RC__)
+  end do loop_modes
+
+  ! ------------------------------------------------------------------
+  ! Write aerosol optics quantities into a file
+  ! ------------------------------------------------------------------
+! call MAPL_SimpleBundleWrite(o, setup%optics_file, setup%time, __RC__)
+
+  call MAPL_SimpleBundleDestroy(o, __RC__)
+
+
+! Finalize self
+! --------------
+  call setup_finalize(setup, __RC__)
+
+ 
+  call ESMF_StateDestroy(aero_state, __RC__)
+
+! Finalize framework
+! ------------------
+  call ESMF_Finalize(__RC__)
+  VERIFY_(status)
+   
+
+  RETURN_(ESMF_SUCCESS)
+
+end subroutine main
+
+
+
+
+subroutine setup_initialize(self, config_file, rc)
+  implicit none
+
+  type(MAM_OpticsCalculatorSetup), intent(inout) :: self
+  character(len=*), intent(in)                   :: config_file
+  integer, optional, intent(out)                 :: rc
+ 
+                        __Iam__('mam_optics_calculator::setup_initialize')
+
+! Local variables
+! ---------------
+  integer :: useShmem
+
+! Set private config
+! ------------------
+  call setup_set_config_(self, config_file, __RC__)
+
+! Set verbose flag
+! ---------------- 
+  call setup_set_verbosity_(self, __RC__)
+
+! Set global grid and time
+! ------------------------
+  call setup_set_grid_(self, __RC__)
+  call setup_set_time_(self, __RC__)
+
+! Set MAM scheme
+! --------------
+  call setup_set_mam_scheme_id_(self, __RC__)
+
+! Set modes and optics LUTs: these are tied together, i.e., 
+! a hash table with keys modes and values the optics LUTs
+! ---------------------------------------------------------
+  call setup_set_mam_modes_(self, __RC__)
+  call setup_set_mam_optics_lut_(self, __RC__)
+
+! Set wavelengths of channel/bands
+! --------------------------------
+  call setup_set_wavelengths_(self, __RC__)
+
+! Set I/O files
+! -------------
+  call setup_set_io_files_(self, __RC__)
+
+! Check if user wants to use node shared memory (default is no)
+! -------------------------------------------------------------
+  call ESMF_ConfigGetAttribute(self%config, useShmem, label='USE_SHMEM:', default=0, __RC__)
+
+  if (useShmem /= 0) then
+      call MAPL_InitializeShmem(__RC__)
+  end if
+
+  RETURN_(ESMF_SUCCESS)
+end subroutine setup_initialize
+
+
+subroutine setup_finalize(self, rc)
+  implicit none
+
+  type(MAM_OpticsCalculatorSetup), intent(inout) :: self
+  integer, optional, intent(out)                 :: rc
+ 
+                        __Iam__('mam_optics_calculator::setup_finalize')
+
+
+  if (associated(self%mode))       deallocate(self%mode)
+  if (associated(self%optics_lut)) deallocate(self%optics_lut)
+  if (associated(self%wavelength)) deallocate(self%wavelength)
+   
+  call ESMF_ConfigDestroy(self%config, __RC__)
+
+  call MAPL_FinalizeShmem(__RC__)
+
+  RETURN_(ESMF_SUCCESS)
+end subroutine setup_finalize
+
+
+subroutine optics_bundle_initialize(optics, grid, mam, rc)
+  implicit none
+
+  type(ESMF_FieldBundle)         :: optics    ! optics (extinction, etc.) parameters
+  type(ESMF_Grid)                :: grid      ! grid
+  type(MAM_Scheme)               :: mam       ! MAM scheme/configuration
+  integer, optional, intent(out) :: rc        ! return code
+
+
+                __Iam__('mam_optics_calculator::optics_bundle_initialize')
+
+  ! local
+  type(ESMF_Field)               :: field
+  character(len=MAM_MAXSTR)      :: field_name   ! field name
+  character(len=MAM_MAXSTR)      :: mode_name    ! aerosol mode name
+  integer                        :: m            ! mode index
+
+
+  ! Fill in optics bundle with empty fields
+  ! ---------------------------------------
+
+  ! field for total quantity, e.g., extinction
+  field_name = 'ext'
+  field_name = ESMF_UtilStringLowerCase(field_name, __RC__)
+  field = MAPL_FieldCreateEmpty(trim(field_name), grid, __RC__)
+  call MAPL_FieldAllocCommit(field, dims=MAPL_DimsHorzVert, location=MAPL_VLocationCenter, typekind=MAPL_R4, hw=0, __RC__)
+  call MAPL_FieldBundleAdd(optics, field, __RC__)
+
+  ! fields for mode quantities
+  do m = 1, mam%n_modes
+      call MAM_AerosolModeGet(mam%mode(m), name=mode_name, __RC__)
+
+      ! create an empty field
+      field_name = 'ext_' // trim(mode_name)
+      field_name = ESMF_UtilStringLowerCase(field_name, __RC__)
+      field = MAPL_FieldCreateEmpty(trim(field_name), grid, __RC__)
+      call MAPL_FieldAllocCommit(field, dims=MAPL_DimsHorzVert, location=MAPL_VLocationCenter, typekind=MAPL_R4, hw=0, __RC__)
+      call MAPL_FieldBundleAdd(optics, field, __RC__)
+  end do
+
+  RETURN_(ESMF_SUCCESS)
+
+end subroutine optics_bundle_initialize
+
+
+subroutine optics_compute(aero_state, rc)
+  use ESMF_StateMod
+
+  implicit none
+
+  type(ESMF_State)     :: aero_state ! aerosol state
+  integer, intent(out) :: rc         ! return code
+
+          __Iam__('mam_optics_calculator::optics_bundle_initialize')
+
+  
+  !local
+  type(ESMF_FieldBundle)          :: optics
+  type(ESMF_Field)                :: field
+
+  character(len=ESMF_MAXSTR)      :: name
+
+  real, pointer, dimension(:,:,:) :: q
+
+  
+  call ESMF_StateGet(aero_state, name=name, __RC__)
+
+  call ESMF_StateGet(aero_state, 'MAM::OPTICS', optics, __RC__)
+
+  call ESMFL_BundleGetPointerToData(optics, 'ext', q, __RC__)
+  
+  q = q + 5.0 
+
+  RETURN_(ESMF_SUCCESS) 
+
+end subroutine optics_compute
+
+
+
+subroutine setup_set_config_(self, config_file, rc)
+  implicit none
+ 
+  type(MAM_OpticsCalculatorSetup), intent(inout) :: self
+  character(len=*), intent(in)                   :: config_file
+  integer, optional, intent(out)                 :: rc
+ 
+                        __Iam__('mam_optics_calculator::setup_set_config_')
+
+
+  self%config = ESMF_ConfigCreate(__RC__)
+  call ESMF_ConfigLoadFile(self%config, fileName=trim(config_file), __RC__)
+ 
+  RETURN_(ESMF_SUCCESS)
+end subroutine setup_set_config_
+
+
+subroutine setup_set_verbosity_(self, rc)
+  implicit none
+ 
+  type(MAM_OpticsCalculatorSetup), intent(inout) :: self
+  integer, optional, intent(out)                 :: rc
+ 
+                        __Iam__('mam_optics_calculator::setup_set_verbosity_')
+
+  call ESMF_ConfigGetAttribute(self%config, self%verbose, label='verbose:', __RC__)
+ 
+  RETURN_(ESMF_SUCCESS)
+end subroutine setup_set_verbosity_
+
+
+subroutine setup_set_io_files_(self, rc)
+  implicit none
+ 
+  type(MAM_OpticsCalculatorSetup), intent(inout) :: self
+  integer, optional, intent(out)                 :: rc
+ 
+                        __Iam__('mam_optics_calculator::setup_set_io_files_')
+
+  call ESMF_ConfigGetAttribute(self%config, self%aerosol_file, label='aerosol_file:', __RC__)
+  call ESMF_ConfigGetAttribute(self%config, self%optics_file,  label='optics_file:',  __RC__)
+ 
+  RETURN_(ESMF_SUCCESS)
+end subroutine setup_set_io_files_
+
+
+subroutine setup_set_grid_(self, rc)
+  implicit none
+ 
+  type(MAM_OpticsCalculatorSetup), intent(inout) :: self
+  integer, optional, intent(out)                 :: rc
+ 
+                        __Iam__('mam_optics_calculator::setup_set_grid_')
+
+
+! World grid dimensions and layout
+! --------------------------------
+  call ESMF_ConfigGetAttribute(self%config, self%im_world, label='WORLD_IM:', __RC__)
+  call ESMF_ConfigGetAttribute(self%config, self%jm_world, label='WORLD_JM:', __RC__)
+  call ESMF_ConfigGetAttribute(self%config, self%lm_world, label='WORLD_LM:', __RC__)
+  call ESMF_ConfigGetAttribute(self%config, self%Nx,       label='NX:',       __RC__)
+  call ESMF_ConfigGetAttribute(self%config, self%Ny,       label='NY:',       __RC__)
+
+! Create global grid
+! ------------------
+  self%grid = MAPL_LatLonGridCreate(name     = 'etaGrid',     &
+                                    Nx       = self%Nx,       &
+                                    Ny       = self%Ny,       &
+                                    IM_World = self%im_world, &
+                                    JM_World = self%jm_world, &
+                                    LM_World = self%lm_world, &
+                                    __RC__)
+
+! Validate grid
+! -------------
+  call ESMF_GridValidate(self%grid, __RC__)
+
+
+  RETURN_(ESMF_SUCCESS)
+end subroutine setup_set_grid_
+
+
+subroutine setup_set_time_(self, rc)
+  implicit none
+ 
+  type(MAM_OpticsCalculatorSetup), intent(inout) :: self
+  integer, optional, intent(out)                 :: rc
+ 
+                        __Iam__('mam_optics_calculator::setup_set_time_')
+
+! Local variables
+! ---------------
+  integer :: year, month, day
+  integer :: hours, minutes, seconds
+  integer :: nymd, nhms
+
+! Initialize the date/time
+! ------------------------
+  nymd = 0
+  nhms = 0
+
+! Get date/time from config
+! -------------------------
+  call ESMF_ConfigGetAttribute(self%config, nymd, label='nymd:', __RC__)
+  call ESMF_ConfigGetAttribute(self%config, nhms, label='nhms:', __RC__)
+
+! Set ESMF Time
+! -------------
+  year  = nymd / 10000; month   = (nymd - 10000 *  year) / 100; day     = nymd - (10000 * year   + 100 * month)
+  hours = nhms / 10000; minutes = (nhms - 10000 * hours) / 100; seconds = nhms - (10000 * hours  + 100 * minutes)
+
+  call ESMF_TimeSet(self%time, yy=year, mm=month, dd=day, h=hours, m=minutes, s=seconds, __RC__)
+
+  RETURN_(ESMF_SUCCESS)
+end subroutine setup_set_time_
+
+
+subroutine setup_set_mam_scheme_id_(self, rc)
+  implicit none
+
+  type(MAM_OpticsCalculatorSetup), intent(inout) :: self
+  integer, optional, intent(out)                 :: rc
+
+                        __Iam__('mam_optics_calculator::setup_set_mam_scheme_id_')
+
+! Local variables
+! ---------------
+  character(len=ESMF_MAXSTR) :: scheme      ! name of MAM scheme/configuration
+
+
+  call ESMF_ConfigGetAttribute(self%config, scheme, label='scheme:', default='MAM7',  __RC__)
+  
+  scheme = ESMF_UtilStringUpperCase(scheme, __RC__)
+
+  select case (scheme)
+      case ('MAM7')
+      self%scheme_id = MAM7_SCHEME
+
+      case default
+      __raise__(MAM_UNKNOWN_SCHEME_ERROR, "Unsupported MAM scheme: " // trim(scheme))
+  end select
+
+  RETURN_(ESMF_SUCCESS)
+end subroutine setup_set_mam_scheme_id_
+
+
+subroutine setup_set_mam_modes_(self, rc)
+  implicit none
+
+  type(MAM_OpticsCalculatorSetup), intent(inout) :: self
+  integer, optional, intent(out)                 :: rc
+
+                        __Iam__('mam_optics_calculator::setup_set_mam_modes_')
+
+! Local variables
+! ---------------
+  character(len=ESMF_MAXSTR) :: mode_
+  logical :: flag
+  integer :: i, n
+
+
+  call ESMF_ConfigFindLabel(self%config, 'modes:', __RC__)
+
+  n = 0
+  do while (.true.)
+      call ESMF_ConfigGetAttribute(self%config, mode_, rc=status)
+      if (status == ESMF_SUCCESS) then
+          n = n + 1
+      else
+          exit
+      end if
+  end do
+
+  _ASSERT(n > 0,'needs informative message')
+  _ASSERT(n < (MAM_MAX_NUMBER_MODES + 1),'needs informative message')
+  
+  allocate(self%mode(n), __STAT__)
+  
+  call ESMF_ConfigFindLabel(self%config, 'modes:', __RC__)
+  do i = 1, n
+      call ESMF_ConfigGetAttribute(self%config, self%mode(i), __RC__)
+  end do
+
+  select case (self%scheme_id)
+      case (MAM7_SCHEME)
+      do i = 1, n 
+          flag = any(MAM7_MODE_NAME(:) .eq. self%mode(i))
+          if (flag .eqv. .false.) then
+              mode_ = self%mode(i)
+              deallocate(self%mode, __STAT__)
+              __raise__(MAM_UNKNOWN_AEROSOL_MODE_ERROR, "Unknown MAM mode " // trim(mode_))
+          end if   
+      end do    
+
+      case (MAM3_SCHEME)
+      do i = 1, n 
+          flag = any(MAM3_MODE_NAME(:) .eq. self%mode(i))
+          if (flag .eqv. .false.) then
+              mode_ = self%mode(i)
+              deallocate(self%mode, __STAT__)
+              __raise__(MAM_UNKNOWN_AEROSOL_MODE_ERROR, "Unknown MAM mode " // trim(mode_))
+          end if    
+      end do
+
+      case default
+      __raise__(MAM_UNKNOWN_SCHEME_ERROR, "Unsupported MAM scheme")
+  end select
+
+  RETURN_(ESMF_SUCCESS)
+end subroutine setup_set_mam_modes_
+
+
+subroutine setup_set_mam_optics_lut_(self, rc)
+  implicit none
+
+  type(MAM_OpticsCalculatorSetup), intent(inout) :: self
+  integer, optional, intent(out)                 :: rc
+
+                        __Iam__('mam_optics_calculator::setup_set_mam_optics_lut_')
+
+! Local variables
+! ---------------
+  character(len=MAX_STRFILE) :: optics_lut_
+  character(len=ESMF_MAXSTR) :: optics_lut_label
+  integer :: i, n
+
+  if (associated(self%mode)) then
+      n = size(self%mode)
+  else
+      n = 0
+  end if
+
+  _ASSERT(n > 0,'needs informative message')
+  _ASSERT(n < (MAM_MAX_NUMBER_MODES + 1),'needs informative message')
+
+  allocate(self%optics_lut(n), __STAT__)
+
+  do i = 1, n
+      optics_lut_label = 'MAM_' // trim(self%mode(i)) // '_OPTICS:'
+      call ESMF_ConfigGetAttribute(self%config, self%optics_lut(i), label=trim(optics_lut_label), __RC__)
+  end do
+
+  RETURN_(ESMF_SUCCESS)
+end subroutine setup_set_mam_optics_lut_
+
+
+subroutine setup_set_wavelengths_(self, rc)
+  implicit none
+
+  type(MAM_OpticsCalculatorSetup), intent(inout) :: self
+  integer, optional, intent(out)                 :: rc
+
+                        __Iam__('mam_optics_calculator::setup_set_wavelengths_')
+
+! Local variables
+! ---------------
+  real    :: wavelength_
+  integer :: i, n
+
+  call ESMF_ConfigFindLabel(self%config, 'wavelength:', __RC__)
+
+  n = 0
+  do while (.true.)
+      call ESMF_ConfigGetAttribute(self%config, wavelength_, rc=status)
+      if (status == ESMF_SUCCESS) then
+          n = n + 1
+      else
+          exit
+      end if
+  end do
+
+
+  _ASSERT(n > 0,'needs informative message')
+
+  allocate(self%wavelength(n), __STAT__)
+  
+  call ESMF_ConfigFindLabel(self%config, 'wavelength:', __RC__)
+  do i = 1, n
+      call ESMF_ConfigGetAttribute(self%config, self%wavelength(i), __RC__)
+  end do
+
+  RETURN_(ESMF_SUCCESS)
+end subroutine setup_set_wavelengths_
+
+
+subroutine text_banner()
+  implicit none
+
+  print *
+  print *, '     --------------------------------------'
+  print *, '         MAM - 3D Extinction Calculator    '
+  print *, '     --------------------------------------'
+  print *
+
+end subroutine text_banner
+
+
+
+end program mam_optics_calculator
+
