@@ -663,7 +663,7 @@ main_i_loop: &
          qgcm3(lmz)    = max( 0.0_r8, q(i,k,lmz) )
 
 ! DEBUG - SS
-print*,"m_a_a_i qgcm3(2) is",q(1,1,2)
+! print*,"m_a_a_i qgcm3(2) is",q(1,1,2)
 ! DEBUG - SS
 
          qqcwgcm3(lmz) = max( 0.0_r8, qqcw(i,k,lmz) )
@@ -714,7 +714,7 @@ print*,"m_a_a_i qgcm3(2) is",q(1,1,2)
             qsub3(lmz,jcldy) = (qgcm3(lmz) - fclea*qsub3(lmz,jclea))/fcldy
 
 ! DEBUG - SS
-print*, "m_a_a_i set gas mixing ratios in sub areas qsub3(2,:) is",qsub3(2,:)
+! print*, "m_a_a_i set gas mixing ratios in sub areas qsub3(2,:) is",qsub3(2,:)
 ! DEBUG - SS
 
             ! check that this does not produce a negative value
@@ -794,7 +794,7 @@ print*, "m_a_a_i set gas mixing ratios in sub areas qsub3(2,:) is",qsub3(2,:)
             qsub3(la,jcldy) = qgcm3(la)*tmp_aa_cldy
 
 ! DEBUG - SS
-print*, "m_a_a_i set aerosol mixing ratios in sub areas qsub3(2,:) is",qsub3(2,:)
+! print*, "m_a_a_i set aerosol mixing ratios in sub areas qsub3(2,:) is",qsub3(2,:)
 ! DEBUG - SS
 
             qqcwsub3(lc,jclea) = 0.0_r8
@@ -839,7 +839,7 @@ print*, "m_a_a_i set aerosol mixing ratios in sub areas qsub3(2,:) is",qsub3(2,:
          end do
 
 ! DEBUG - SS
-print*, "m_a_a_i All cloudy or all clear cells qsub3(2,:)",qsub3(2,:)
+! print*, "m_a_a_i All cloudy or all clear cells qsub3(2,:)",qsub3(2,:)
 ! DEBUG - SS
 
       else
@@ -869,7 +869,7 @@ print*, "m_a_a_i All cloudy or all clear cells qsub3(2,:)",qsub3(2,:)
       end if
 
 ! DEBUG - SS
-print*,"m_a_a_i Something with water uptake qsub3(2,:)",qsub3(2,:)
+! print*,"m_a_a_i Something with water uptake qsub3(2,:)",qsub3(2,:)
 ! DEBUG - SS
 
 ! diagnostics after forming sub-areas
@@ -1051,7 +1051,7 @@ print*,"m_a_a_i Something with water uptake qsub3(2,:)",qsub3(2,:)
       end do
 
 ! DEBUG-SS
-print*, "m_a_a_i The new value of q in qgcm4(lmz) is",q(1,1,2)
+! print*, "m_a_a_i The new value of q in qgcm4(lmz) is",q(1,1,2)
 ! DEBUG-SS
 
 #if ( defined( CAMBOX_ACTIVATE_THIS ) )

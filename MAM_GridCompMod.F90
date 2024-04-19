@@ -658,7 +658,7 @@ contains
 !   All done
 !   --------
 
-    print *, "End of the MAM SetServices routine"
+    if (MAPL_AM_I_ROOT()) print *, "End of the MAM SetServices routine"
 
     RETURN_(ESMF_SUCCESS)
 
@@ -1855,6 +1855,10 @@ contains
 !   -------------------------------------------------
     type(ESMF_State)              :: INTERNAL
 
+    if (MAPL_AM_I_ROOT()) then
+        print *, "DEBUG-IR: Start of the MAM Run routine"
+     end if
+
 !   Get my name and set-up traceback handle
 !   ---------------------------------------
     call ESMF_GridCompGet( GC, name=comp_name, __RC__ )
@@ -1880,9 +1884,10 @@ contains
                            RunAlarm=run_alarm, __RC__)
 
 ! DEBUG - SS
-   print*, "The value of EmCtr is", EmCtr
-   EmCtr = EmCtr + 1
-   print*, "The value of EmCtr is", EmCtr
+    EmCtr = EmCtr + 1
+    if (MAPL_AM_I_ROOT()) then
+       print*, "DEBUG-IR: The value of EmCtr is", EmCtr
+    end if
 ! DEBUG - SS
 
 
@@ -2065,13 +2070,6 @@ contains
     call MAPL_GetPointer(import, h2so4, 'H2SO4',    __RC__)
     call MAPL_GetPointer(import, so2,   'SO2',      __RC__)
 
-!   DEBUG-SS
-    print*, "H2SO4 at time step", EmCtr, "is", minval(h2so4), maxval(h2so4)
-    if (EmCtr == 0) then
-    h2so4(:,:,:) = 0.1_r8
-    endif
-!   DEBUG-SS
-   
 !   call MAPL_GetPointer(import, dms,   'DMS',      __RC__)
     call MAPL_GetPointer(import, nh3,   'NH3',      __RC__)
     call MAPL_GetPointer(import, soa_g, 'SOA_GAS',  __RC__)
@@ -2103,9 +2101,34 @@ contains
     call MAPL_GetPointer(import, nh3_a_,    '_NH3_aq',      __RC__)
     call MAPL_GetPointer(import, soa_g_a_,  '_SOA_GAS_aq',  __RC__)
 
+!   DEBUG-SS
+    if (MAPL_AM_I_ROOT()) then
+        print*, "DEBUG-IR: H2SO4 at time step", EmCtr, "is", minval(h2so4), maxval(h2so4)
+    end if
+
+    ! if (EmCtr == 1) then
+    !     h2so4(:,:,:) = 0.1_r8
+    !     if (MAPL_AM_I_ROOT()) print*, "DEBUG-IR: H2SO4 set! Values: ", minval(h2so4), maxval(h2so4)
+    ! endif
+
+    ! if (EmCtr == 1) then
+        h2so4(:,:,:) = 0.1_r8
+        h2so4_g_(:,:,:) = 0.1_r8
+        h2so4_a_(:,:,:) = 0.1_r8
+        if (MAPL_AM_I_ROOT()) then
+            print*, "DEBUG-IR: h2so4_g_ set! Values: ", minval(h2so4_g_), maxval(h2so4_g_)
+            print*, "DEBUG-IR: h2so4_g_ set! Values: ", minval(h2so4_g_), maxval(h2so4_g_)
+            print*, "DEBUG-IR: h2so4_a_ set! Values: ", minval(h2so4_a_), maxval(h2so4_a_)
+        end if
+    ! endif
+
+!   DEBUG-SS
+
 ! DEBUG-SS
-    print*, "Begin H2SO4_g_ at time step", EmCtr, "is", minval(h2so4_g_), maxval(h2so4_g_)
-    print*, "Begin H2SO4_a_ at time step", EmCtr, "is", minval(h2so4_a_), maxval(h2so4_a_)
+    ! if (MAPL_AM_I_ROOT()) then
+    !     print*, "DEBUG-IR: Begin H2SO4_g_ at time step", EmCtr, "is", minval(h2so4_g_), maxval(h2so4_g_)
+    !     print*, "DEBUG-IR: Begin H2SO4_a_ at time step", EmCtr, "is", minval(h2so4_a_), maxval(h2so4_a_)
+    ! end if
 ! DEBUG-SS
 
     ! aitken
@@ -2364,8 +2387,8 @@ contains
             amc_q_pregaschem(:ncol,:pver,:pcnstxx) = amc_q      ! q TMRs    before gas-phase chemistry
 
 ! DEBUG-SS
-if ((i == 1) .and. (j == 1)) then
-print*, "The value of H2SO4 in aerosol microphysics in time step",EmCtr,"is",minval(amc_q(:,:,i_h2so4)) , maxval(amc_q(:,:,i_h2so4))
+if ((i == 1) .and. (j == 1) .and. MAPL_AM_I_ROOT()) then
+print*, "DEBUG-IR: The value of H2SO4 in aerosol microphysics in time step",EmCtr,"is",minval(amc_q(:,:,i_h2so4)) , maxval(amc_q(:,:,i_h2so4))
 endif
 ! DEBUG-SS
 
@@ -2379,8 +2402,8 @@ endif
             amc_q_pregaschem(ncol,:,i_h2so4) = h2so4_g_(i,j,:)
 
 ! DEBUG-SS
-if ((i == 1) .and. (j == 1)) then
-print *, "The value of H2SO4 at time step", EmCtr, "after copying the pregaschem value is ", minval(amc_q_pregaschem(:,:,i_h2so4)) , maxval(amc_q_pregaschem(:,:,i_h2so4))
+if ((i == 1) .and. (j == 1) .and. MAPL_AM_I_ROOT()) then
+print *, "DEBUG-IR: The value of H2SO4 at time step", EmCtr, "after copying the pregaschem value is ", minval(amc_q_pregaschem(:,:,i_h2so4)) , maxval(amc_q_pregaschem(:,:,i_h2so4))
 endif
 ! DEBUG-SS
 
@@ -2460,8 +2483,8 @@ endif
             !    2. renaming after "continuous growth"
             !    3. primary carbon aging
 
-! DEBUG - SS
-if ((i == 1) .and. (j == 1)) then
+! DEBUG - SS fs
+if ((i == 1) .and. (j == 1) .and. MAPL_AM_I_ROOT()) then
 print*, "The value of temperature is", minval(amc_t), maxval(amc_t)
 endif
 ! DEBUG - SS
@@ -2500,13 +2523,6 @@ endif
             ! current tracer mixing ratios (TMRs)
 !           h2o2             = amc_q(ncol,:,i_h2o2)
             h2so4(i,j,:)     = amc_q(ncol,:,i_h2so4)
-
-! DEBUG-SS
-if ((i == 1) .and. (j == 1)) then
-print*, "The H2SO4 after modal_aero_amicphys_intr in time step",EmCtr,"is",minval(h2so4) , maxval(h2so4)
-endif
-! DEBUG-SS
-
             so2(i,j,:)       = amc_q(ncol,:,i_so2)
 !           dms              = amc_q(ncol,:,i_dms)
             nh3(i,j,:)       = amc_q(ncol,:,i_nh3)
@@ -2558,6 +2574,12 @@ endif
             qqcw_coltend_rename_(i,j,:) = amc_q_coltendaa(ncol,:,iqqcwtend_rnam)
         end do
     end do
+
+! DEBUG-SS
+if (MAPL_AM_I_ROOT()) then
+print*, "DEBUG-IR: The H2SO4 after modal_aero_amicphys_intr in time step",EmCtr,"is",minval(h2so4) , maxval(h2so4)
+endif
+! DEBUG-SS
 
     end if AEROSOL_MICROPHYSICS
 
@@ -2743,7 +2765,9 @@ endif
             h2so4(i,j,:)     = amc_q(ncol,:,i_h2so4)
 
 ! DEBUG - SS
-print*,"The value of H2SO4 after modal_aero_calcsize in time step",EmCtr,"is",minval(h2so4) , maxval(h2so4)
+    if (i == 1 .and. j == 1 .and. MAPL_AM_I_ROOT()) then
+        print*,"DEBUG-IR: The value of H2SO4 after modal_aero_calcsize in time step",EmCtr,"is",minval(h2so4) , maxval(h2so4)
+    end if
 ! DEBUG - SS
 
             so2(i,j,:)       = amc_q(ncol,:,i_so2)
@@ -2922,8 +2946,11 @@ print*,"The value of H2SO4 after modal_aero_calcsize in time step",EmCtr,"is",mi
 #endif
 
 ! DEBUG-SS
-    print*, "End H2SO4_g_ at time step", EmCtr, "is", minval(h2so4_g_(1,1,:)) , maxval(h2so4_g_(1,1,:))
-    print*, "End H2SO4_a_ at time step", EmCtr, "is", minval(h2so4_a_(1,1,:)) , maxval(h2so4_a_(1,1,:))
+    if (MAPL_AM_I_ROOT()) then
+        print*, "DEBUG-IR: End H2SO4_g_ at time step", EmCtr, "is", minval(h2so4_g_(1,1,:)) , maxval(h2so4_g_(1,1,:))
+        print*, "DEBUG-IR: End H2SO4_a_ at time step", EmCtr, "is", minval(h2so4_a_(1,1,:)) , maxval(h2so4_a_(1,1,:))
+        print*, "DEBUG-IR: End H2SO4 at time step", EmCtr, "is", minval(h2so4), maxval(h2so4)
+    end if
 ! DEBUG-SS
 
     call MAPL_TimerOff(mgState, '-DIAGNOSTICS', __RC__)
@@ -2935,7 +2962,9 @@ print*,"The value of H2SO4 after modal_aero_calcsize in time step",EmCtr,"is",mi
 !   All done
 !   --------i
 
-    print *, "End of the MAM Run routine"
+    if (MAPL_AM_I_ROOT()) then
+        print *, "DEBUG-IR: End of the MAM Run routine"
+    end if
 
     RETURN_(ESMF_SUCCESS)
 
@@ -3332,7 +3361,7 @@ print*,"The value of H2SO4 after modal_aero_calcsize in time step",EmCtr,"is",mi
     call MAPL_GetPointer(import, pSO4_aq, 'pSO4_aq',   __RC__)
     call MAPL_GetPointer(import, pNH4_aq, 'pNH4_aq',   __RC__)
 
-print *, "In MAM_GC AIRDENS = ", rhoa
+!print *, "In MAM_GC AIRDENS = ", rhoa
 
     if ((.not. associated(pSO4_aq)) .or. (.not. associated(pNH4_aq))) then
         print *, 'Skipping MAM::AqueousChemistry()'
