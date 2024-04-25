@@ -1885,9 +1885,9 @@ contains
 
 ! DEBUG - SS
     EmCtr = EmCtr + 1
-    if (MAPL_AM_I_ROOT()) then
-       print*, "DEBUG-IR: The value of EmCtr is", EmCtr
-    end if
+!    if (MAPL_AM_I_ROOT()) then
+!       print*, "DEBUG-IR: The value of EmCtr is", EmCtr
+!    end if
 ! DEBUG - SS
 
 
@@ -2111,16 +2111,16 @@ contains
     !     if (MAPL_AM_I_ROOT()) print*, "DEBUG-IR: H2SO4 set! Values: ", minval(h2so4), maxval(h2so4)
     ! endif
 
-    ! if (EmCtr == 1) then
+    if (EmCtr == 1) then
         h2so4(:,:,:) = 0.1_r8
-        h2so4_g_(:,:,:) = 0.1_r8
-        h2so4_a_(:,:,:) = 0.1_r8
+        ! h2so4_g_(:,:,:) = 0.1_r8
+        ! h2so4_a_(:,:,:) = 0.1_r8
         if (MAPL_AM_I_ROOT()) then
-            print*, "DEBUG-IR: h2so4_g_ set! Values: ", minval(h2so4_g_), maxval(h2so4_g_)
-            print*, "DEBUG-IR: h2so4_g_ set! Values: ", minval(h2so4_g_), maxval(h2so4_g_)
-            print*, "DEBUG-IR: h2so4_a_ set! Values: ", minval(h2so4_a_), maxval(h2so4_a_)
+            print*, "DEBUG-IR: h2so4 set! Values: ", minval(h2so4), maxval(h2so4)
+            ! print*, "DEBUG-IR: h2so4_g_ set! Values: ", minval(h2so4_g_), maxval(h2so4_g_)
+            ! print*, "DEBUG-IR: h2so4_a_ set! Values: ", minval(h2so4_a_), maxval(h2so4_a_)
         end if
-    ! endif
+    endif
 
 !   DEBUG-SS
 
@@ -2387,9 +2387,9 @@ contains
             amc_q_pregaschem(:ncol,:pver,:pcnstxx) = amc_q      ! q TMRs    before gas-phase chemistry
 
 ! DEBUG-SS
-if ((i == 1) .and. (j == 1) .and. MAPL_AM_I_ROOT()) then
-print*, "DEBUG-IR: The value of H2SO4 in aerosol microphysics in time step",EmCtr,"is",minval(amc_q(:,:,i_h2so4)) , maxval(amc_q(:,:,i_h2so4))
-endif
+! if ((i == 1) .and. (j == 1) .and. MAPL_AM_I_ROOT()) then
+! print*, "DEBUG-IR: The value of H2SO4 in aerosol microphysics in time step",EmCtr,"is",minval(amc_q(:,:,i_h2so4)) , maxval(amc_q(:,:,i_h2so4))
+! endif
 ! DEBUG-SS
 
 #if (0)
@@ -2402,9 +2402,9 @@ endif
             amc_q_pregaschem(ncol,:,i_h2so4) = h2so4_g_(i,j,:)
 
 ! DEBUG-SS
-if ((i == 1) .and. (j == 1) .and. MAPL_AM_I_ROOT()) then
-print *, "DEBUG-IR: The value of H2SO4 at time step", EmCtr, "after copying the pregaschem value is ", minval(amc_q_pregaschem(:,:,i_h2so4)) , maxval(amc_q_pregaschem(:,:,i_h2so4))
-endif
+! if ((i == 1) .and. (j == 1) .and. MAPL_AM_I_ROOT()) then
+! print *, "DEBUG-IR: The value of H2SO4 at time step", EmCtr, "after copying the pregaschem value is ", minval(amc_q_pregaschem(:,:,i_h2so4)) , maxval(amc_q_pregaschem(:,:,i_h2so4))
+! endif
 ! DEBUG-SS
 
             amc_q_pregaschem(ncol,:,i_so2)   = so2_g_(i,j,:)
@@ -2576,9 +2576,9 @@ endif
     end do
 
 ! DEBUG-SS
-if (MAPL_AM_I_ROOT()) then
-print*, "DEBUG-IR: The H2SO4 after modal_aero_amicphys_intr in time step",EmCtr,"is",minval(h2so4) , maxval(h2so4)
-endif
+! if (MAPL_AM_I_ROOT()) then
+! print*, "DEBUG-IR: The H2SO4 after modal_aero_amicphys_intr in time step",EmCtr,"is",minval(h2so4) , maxval(h2so4)
+! endif
 ! DEBUG-SS
 
     end if AEROSOL_MICROPHYSICS
@@ -2765,9 +2765,9 @@ endif
             h2so4(i,j,:)     = amc_q(ncol,:,i_h2so4)
 
 ! DEBUG - SS
-    if (i == 1 .and. j == 1 .and. MAPL_AM_I_ROOT()) then
-        print*,"DEBUG-IR: The value of H2SO4 after modal_aero_calcsize in time step",EmCtr,"is",minval(h2so4) , maxval(h2so4)
-    end if
+!     if (i == 1 .and. j == 1 .and. MAPL_AM_I_ROOT()) then
+!         print*,"DEBUG-IR: The value of H2SO4 after modal_aero_calcsize in time step",EmCtr,"is",minval(h2so4) , maxval(h2so4)
+!     end if
 ! DEBUG - SS
 
             so2(i,j,:)       = amc_q(ncol,:,i_so2)
@@ -2947,8 +2947,8 @@ endif
 
 ! DEBUG-SS
     if (MAPL_AM_I_ROOT()) then
-        print*, "DEBUG-IR: End H2SO4_g_ at time step", EmCtr, "is", minval(h2so4_g_(1,1,:)) , maxval(h2so4_g_(1,1,:))
-        print*, "DEBUG-IR: End H2SO4_a_ at time step", EmCtr, "is", minval(h2so4_a_(1,1,:)) , maxval(h2so4_a_(1,1,:))
+        ! print*, "DEBUG-IR: End H2SO4_g_ at time step", EmCtr, "is", minval(h2so4_g_(1,1,:)) , maxval(h2so4_g_(1,1,:))
+        ! print*, "DEBUG-IR: End H2SO4_a_ at time step", EmCtr, "is", minval(h2so4_a_(1,1,:)) , maxval(h2so4_a_(1,1,:))
         print*, "DEBUG-IR: End H2SO4 at time step", EmCtr, "is", minval(h2so4), maxval(h2so4)
     end if
 ! DEBUG-SS
