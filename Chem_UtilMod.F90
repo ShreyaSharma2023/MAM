@@ -29,7 +29,7 @@
    use MAPL
 
 !   use Chem_Mod                  ! Chemistry Base Class
-   use mod_diag                  ! fvGCM diagnostics
+!   use mod_diag                  ! fvGCM diagnostics
    use m_die
    use m_StrTemplate             ! string templates
    use m_chars, only: uppercase
