@@ -394,7 +394,7 @@ contains
                                       UNITS      = 'kg kg-1',             &
                                       DIMS       = MAPL_DimsHorzVert,     &
                                       VLOCATION  = MAPL_VLocationCenter,  &
-                                      ADD2EXPORT = .true.,                &
+                                      FRIENDLYTO = 'DYNAMICS:TURBULENCE:MOIST',                &
                                       RESTART    = MAPL_RestartSkip, __RC__)
 
         ! dry size
@@ -406,7 +406,7 @@ contains
                                       UNITS      = 'm',                   &
                                       DIMS       = MAPL_DimsHorzVert,     &
                                       VLOCATION  = MAPL_VLocationCenter,  &
-                                      ADD2EXPORT = .true.,                &
+                                      FRIENDLYTO = 'DYNAMICS:TURBULENCE:MOIST',                &
                                       RESTART    = MAPL_RestartSkip, __RC__)
 
         ! wet size
@@ -418,7 +418,7 @@ contains
                                       UNITS      = 'm',                   &
                                       DIMS       = MAPL_DimsHorzVert,     &
                                       VLOCATION  = MAPL_VLocationCenter,  &
-                                      ADD2EXPORT = .true.,                &
+                                      FRIENDLYTO = 'DYNAMICS:TURBULENCE:MOIST',                &
                                       RESTART    = MAPL_RestartSkip, __RC__)
     end do
 
@@ -642,6 +642,8 @@ contains
 
 !   All done
 !   --------
+
+    print *, "End of the MAM SetServices routine"
 
     RETURN_(ESMF_SUCCESS)
 
@@ -916,7 +918,9 @@ contains
     ! Radiation will not call the aerosol optics method unless this attribute is
     ! explicitly set to true.
 
-    implements_aerosol_optics = .true.
+
+! DEBUG Changing this to false temporarily
+    implements_aerosol_optics = .false.
 
     call ESMF_AttributeSet(aero, name  = 'implements_aerosol_optics_method', &
                                  value = implements_aerosol_optics, __RC__)
@@ -956,7 +960,7 @@ contains
         ! MAM_MieTable = MAM_MieCreate(CF, __RC__)
 
         ! state of the atmosphere
-        call ESMF_AttributeSet(aero, name='air_pressure_for_aerosol_optics',             value='PLE2', __RC__)
+        call ESMF_AttributeSet(aero, name='air_pressure_for_aerosol_optics',             value='PLE', __RC__)
         call ESMF_AttributeSet(aero, name='relative_humidity_for_aerosol_optics',        value='RH',  __RC__)
         call ESMF_AttributeSet(aero, name='cloud_area_fraction_for_aerosol_optics',      value='',    __RC__) ! 'cloud_area_fraction_in_atmosphere_layer_for_aerosol_optics'
 
@@ -1496,6 +1500,7 @@ contains
         end if
 #endif
 
+        print *, "End of the MAM initialize routine"
 
         RETURN_(ESMF_SUCCESS)
 
@@ -2026,7 +2031,7 @@ contains
 
     amc_deltat = self%dt                       ! time step (s)
 
-    call MAPL_GetPointer(import, ple,   'PLE2',   __RC__)
+    call MAPL_GetPointer(import, ple,   'PLE',   __RC__)
     call MAPL_GetPointer(import, delp,  'DELP',  __RC__)
     call MAPL_GetPointer(import, fcld,  'FCLD',  __RC__)
     call MAPL_GetPointer(import, Q,     'Q',     __RC__)
@@ -2038,6 +2043,13 @@ contains
 !   call MAPL_GetPointer(import, h2o2,  'H2O2',     __RC__)
     call MAPL_GetPointer(import, h2so4, 'H2SO4',    __RC__)
     call MAPL_GetPointer(import, so2,   'SO2',      __RC__)
+
+    ! Print the first layer
+    print *, "First layer values:", so2(1,1,1)
+    
+    ! Print the last layer
+    print *, "Last layer values:", so2(1,1,72)
+
 !   call MAPL_GetPointer(import, dms,   'DMS',      __RC__)
     call MAPL_GetPointer(import, nh3,   'NH3',      __RC__)
     call MAPL_GetPointer(import, soa_g, 'SOA_GAS',  __RC__)
@@ -2550,6 +2562,8 @@ contains
 
     call MAPL_TimerOn(mgState, '-EMISSIONS', __RC__)
 
+! Turning off all but sulfate emissions'
+
 !   Seasalt emissions
 !   -----------------
     call MAM_SS_Emission(self%scheme, import, export, self%qa, self%femisSS, self%dt, __RC__)
@@ -2847,7 +2861,10 @@ contains
     call MAPL_TimerOff(mgState, 'TOTAL', __RC__)
 
 !   All done
-!   --------
+!   --------i
+
+    print *, "End of the MAM Run routine"
+
     RETURN_(ESMF_SUCCESS)
 
    end subroutine Run_
@@ -2957,6 +2974,9 @@ contains
 
 !  All done
 !  --------
+
+   print *, "End of the MAM finalize routine"
+
    RETURN_(ESMF_SUCCESS)
 
  end subroutine Finalize_
@@ -3059,6 +3079,7 @@ contains
     jm = dims(2)
     lm = dims(3)
 
+    print *, "End of the MAM extract subroutine"
 
     RETURN_(ESMF_SUCCESS)
 
@@ -3144,6 +3165,7 @@ contains
     short_name = trim(name) // state // trim(mode_short_name)
     long_name  = buff // trim(attachment_state) // ' aerosol particles in ' // trim(mode_long_name) // ' mode'
 
+    print *, "End of the MAM_GetFieldName subroutine"
 
     RETURN_(ESMF_SUCCESS)
 
@@ -3230,7 +3252,7 @@ contains
 !   Get Imports
 !   --------------
     call MAPL_GetPointer(import, rhoa,    'AIRDENS',   __RC__)
-    call MAPL_GetPointer(import, ple,     'PLE2',       __RC__)
+    call MAPL_GetPointer(import, ple,     'PLE',       __RC__)
     call MAPL_GetPointer(import, delp,    'DELP',      __RC__)
 
     call MAPL_GetPointer(import, pSO4_aq, 'pSO4_aq',   __RC__)
@@ -3333,6 +3355,8 @@ contains
     deallocate(num_aq, __STAT__)
     deallocate(f,      __STAT__)
 
+    print *, "End of the MAM Aqueous Chemistry subroutine"
+
     RETURN_(ESMF_SUCCESS)
 
  end subroutine AqueousChemistry
@@ -3413,7 +3437,7 @@ contains
 !   Get Imports
 !   --------------
     call MAPL_GetPointer(import, rhoa,      'AIRDENS',   __RC__)
-    call MAPL_GetPointer(import, ple,       'PLE2',       __RC__)
+    call MAPL_GetPointer(import, ple,       'PLE',       __RC__)
     call MAPL_GetPointer(import, delp,      'DELP',      __RC__)
 
 !   Get Exports
@@ -3464,6 +3488,8 @@ contains
             end if
         end do
     end do
+
+    print *, "End of the MAM CIM diagnostics suboutine"
 
     RETURN_(ESMF_SUCCESS)
 
@@ -3628,6 +3654,7 @@ contains
         end if
     end do
 
+    print *, "End of the MAM SFC diagnostics subroutine"
 
     RETURN_(ESMF_SUCCESS)
 
@@ -4109,6 +4136,8 @@ contains
   deallocate(ext,  sca,  ssa,  asy, __STAT__)
   deallocate(ext_, sca_, asy_,      __STAT__)
 
+  print *, "End of the MAM AOT Diagnostics"
+
   RETURN_(ESMF_SUCCESS)
 
  end subroutine AOT_Diagnostics
@@ -4539,6 +4568,8 @@ end function isDataDrivenGC_
   deallocate(dp,                    __STAT__)
   deallocate(ext,  sca,  ssa,  asy, __STAT__)
   deallocate(ext_, sca_, asy_,      __STAT__)
+
+  print *, "End of the MAM Aerosol Optics subroutine"
 
   RETURN_(ESMF_SUCCESS)
 
@@ -4972,6 +5003,7 @@ subroutine aerosol_activation_properties(state, rc)
 
   end select
 
+  print *, "End of the aerosol activation properties subroutine"
 
   RETURN_(ESMF_SUCCESS)
 
