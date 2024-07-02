@@ -16,11 +16,17 @@ wet_removal: yes
 coagulation: yes
 nucleation:  yes
 
+# MAM Model Restart Files
+# -------------------------------------
+MAM_INTERNAL_RESTART_FILE:     mam_restart.nc4
+MAM_INTERNAL_RESTART_TYPE:     pnc4
+MAM_INTERNAL_CHECKPOINT_FILE:  mam_internal_checkpoint
+MAM_INTERNAL_CHECKPOINT_TYPE:  pnc4
 
 # Prognostics emissions parameters (resolution: a, b, c, d, e, f)
 # ---------------------------------------------------------------
-seasalt_femis: 0.875   1.1  0.875  0.875  0.875 0.612
-dust_femis:    0.2     0.46 0.08   0.08   0.08  0.067
+seasalt_femis: 8.75   11.0  8.75  8.75  8.75 6.12
+dust_femis:    2.0    4.6   0.8   0.8   0.8  0.67
 
 
 # Ratio of POM emissions to primary OC emissions
@@ -54,28 +60,26 @@ f_wet_css: 1.0          # coarse seasalt mode
 f_wet_fdu: 0.5          # fine dust mode
 f_wet_cdu: 0.5          # coarse dust mode
 
-
 # Monochromatic Mie lookup tables
 # -------------------------------
-narrowband_optics_ait: /home/adarmeno/tmp/MAM7-OpticsTables/_optics_MAM7_AIT.v0.3-rc1.nc4
-narrowband_optics_acc: /home/adarmeno/tmp/MAM7-OpticsTables/_optics_MAM7_ACC.v0.3-rc1.nc4
-narrowband_optics_pcm: /home/adarmeno/tmp/MAM7-OpticsTables/_optics_MAM7_PCM.v0.3-rc1.nc4
-narrowband_optics_fss: /home/adarmeno/tmp/MAM7-OpticsTables/_optics_MAM7_FSS.v0.3-rc1.nc4
-narrowband_optics_css: /home/adarmeno/tmp/MAM7-OpticsTables/_optics_MAM7_CSS.v0.3-rc1.nc4
-narrowband_optics_fdu: /home/adarmeno/tmp/MAM7-OpticsTables/_optics_MAM7_FDU.v0.3-rc1.nc4
-narrowband_optics_cdu: /home/adarmeno/tmp/MAM7-OpticsTables/_optics_MAM7_CDU.v0.3-rc1.nc4
+#narrowband_optics_ait: /home/adarmeno/tmp/MAM7-OpticsTables/_optics_MAM7_AIT.v0.3-rc1.nc4
+#narrowband_optics_acc: /home/adarmeno/tmp/MAM7-OpticsTables/_optics_MAM7_ACC.v0.3-rc1.nc4
+#narrowband_optics_pcm: /home/adarmeno/tmp/MAM7-OpticsTables/_optics_MAM7_PCM.v0.3-rc1.nc4
+#narrowband_optics_fss: /home/adarmeno/tmp/MAM7-OpticsTables/_optics_MAM7_FSS.v0.3-rc1.nc4
+#narrowband_optics_css: /home/adarmeno/tmp/MAM7-OpticsTables/_optics_MAM7_CSS.v0.3-rc1.nc4
+#narrowband_optics_fdu: /home/adarmeno/tmp/MAM7-OpticsTables/_optics_MAM7_FDU.v0.3-rc1.nc4
+#narrowband_optics_cdu: /home/adarmeno/tmp/MAM7-OpticsTables/_optics_MAM7_CDU.v0.3-rc1.nc4
 
 
 # Broadband Mie lookup tables
 # ---------------------------
-broadband_optics_ait: /home/adarmeno/tmp/MAM7-OpticsTables/_opticsBands_MAM7_AIT.v0.3-rc1.nc4
-broadband_optics_acc: /home/adarmeno/tmp/MAM7-OpticsTables/_opticsBands_MAM7_ACC.v0.3-rc1.nc4
-broadband_optics_pcm: /home/adarmeno/tmp/MAM7-OpticsTables/_opticsBands_MAM7_PCM.v0.3-rc1.nc4
-broadband_optics_fss: /home/adarmeno/tmp/MAM7-OpticsTables/_opticsBands_MAM7_FSS.v0.3-rc1.nc4
-broadband_optics_css: /home/adarmeno/tmp/MAM7-OpticsTables/_opticsBands_MAM7_CSS.v0.3-rc1.nc4
-broadband_optics_fdu: /home/adarmeno/tmp/MAM7-OpticsTables/_opticsBands_MAM7_FDU.v0.3-rc1.nc4
-broadband_optics_cdu: /home/adarmeno/tmp/MAM7-OpticsTables/_opticsBands_MAM7_CDU.v0.3-rc1.nc4
-
+#broadband_optics_ait: /home/adarmeno/tmp/MAM7-OpticsTables/_opticsBands_MAM7_AIT.v0.3-rc1.nc4
+#broadband_optics_acc: /home/adarmeno/tmp/MAM7-OpticsTables/_opticsBands_MAM7_ACC.v0.3-rc1.nc4
+#broadband_optics_pcm: /home/adarmeno/tmp/MAM7-OpticsTables/_opticsBands_MAM7_PCM.v0.3-rc1.nc4
+#broadband_optics_fss: /home/adarmeno/tmp/MAM7-OpticsTables/_opticsBands_MAM7_FSS.v0.3-rc1.nc4
+#broadband_optics_css: /home/adarmeno/tmp/MAM7-OpticsTables/_opticsBands_MAM7_CSS.v0.3-rc1.nc4
+#broadband_optics_fdu: /home/adarmeno/tmp/MAM7-OpticsTables/_opticsBands_MAM7_FDU.v0.3-rc1.nc4
+#broadband_optics_cdu: /home/adarmeno/tmp/MAM7-OpticsTables/_opticsBands_MAM7_CDU.v0.3-rc1.nc4
 
 PRIMARY_AEROSOL_EMISSIONS:
     EMISSIONS_FIRE

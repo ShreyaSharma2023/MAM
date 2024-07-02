@@ -56,7 +56,11 @@
    integer, parameter :: instanceComputational = 1
    integer, parameter :: instanceData          = 2
 
-
+   integer            :: restartAttr
+   integer            :: IU_GEOS, IOS, N, NADV
+   logical            :: EOF
+   CHARACTER(LEN=255)            :: LINE, SUBSTRS(500)
+   CHARACTER(LEN=60)             :: SimType, AdvSpc(500)
 !
 ! !PUBLIC MEMBER FUNCTIONS:
 
@@ -76,6 +80,11 @@
 !
 !EOP
 !-------------------------------------------------------------------------
+
+
+
+
+
 
 !  Legacy state
 !  ------------
@@ -141,6 +150,11 @@
       type(MAML_OpticsTable)      :: mie_fdu
       type(MAML_OpticsTable)      :: mie_cdu
 
+      character(len=MAM_MAXSTR)  :: MAM_INTERNAL_RESTART_FILE 
+      character(len=MAM_MAXSTR)  :: MAM_INTERNAL_RESTART_TYPE
+      character(len=MAM_MAXSTR)  :: MAM_INTERNAL_CHECKPOINT_FILE
+      character(len=MAM_MAXSTR)  :: MAM_INTERNAL_CHECKPOINT_TYPE
+
       logical                     :: verbose      ! verbosity flag
    end type MAM_State
 
@@ -164,6 +178,11 @@ contains
 ! !INTERFACE:
 
    subroutine SetServices ( GC, RC )
+
+!  !USES:
+    USE inquireMod,           ONLY : findFreeLUN
+
+
 
 ! !ARGUMENTS:
 
@@ -337,7 +356,69 @@ contains
 #include "MAM_ImportSpec___.h"
 
 ! !INTERNAL STATE:
+! SS TODO: Make MAM generate restart files
+    ! Determine if using a restart file for the internal state. Setting
+    ! the MAM_INTERNAL_RESTART_FILE to +none in MAM_GridComp.rc indicates
+    ! skipping the restart file. Species concentrations will be retrieved
+    ! from the species database, overwriting MAPL-assigned default values.
+    CALL ESMF_ConfigGetAttribute( self%CF, self%MAM_INTERNAL_RESTART_FILE, &
+                                  label='MAM_INTERNAL_RESTART_FILE:', &
+                                  __RC__ )
+    IF ( self%MAM_INTERNAL_RESTART_FILE == '+none' ) THEN
+       restartAttr = MAPL_RestartSkipInitial ! file does not exist;
+                                             ! use background values
+    ELSE
+       restartAttr = MAPL_RestartOptional    ! try to read species from file;
+                                             ! use background vals if not found
+    ENDIF
 
+! SS TODO: 
+    ! Open mam_config.yml to find the sim name and transported species
+    IU_GEOS = findFreeLun()
+    OPEN( IU_GEOS, FILE='mam_config.yml', STATUS='OLD', IOSTAT=IOS )
+    IF ( IOS /= 0 ) CALL IOERROR( IOS, IU_GEOS, 'READ_SPECIES_FROM_FILE:1' )
+    DO
+       READ( IU_GEOS, '(a)', IOSTAT=IOS ) LINE
+       IF ( IOS /= 0 ) CALL IOERROR( IOS, IU_GEOS, 'READ_SPECIES_FROM_FILE:2' )
+       LINE = ADJUSTL( ADJUSTR( LINE ) )
+       IF ( INDEX( LINE, 'name' ) > 0 ) THEN
+          CALL STRSPLIT( line, ':', SUBSTRS, N )
+          SimType = ADJUSTL( ADJUSTR( SUBSTRS(2) ) )
+       ENDIF
+       IF ( INDEX( LINE, 'transported_species' ) > 0 ) EXIT
+    ENDDO
+
+    ! Read in all advected species names and add them to internal state
+    NADV = 0
+    DO WHILE ( LEN_TRIM( line ) > 0 )
+       READ( IU_GEOS, '(a)', IOSTAT=IOS ) LINE
+       EOF = IOS < 0
+       IF ( EOF ) EXIT !Simply exit when the file ends (bmy, 12 Jan 2023)
+       IF ( IOS > 0 ) CALL IOERROR( IOS, IU_GEOS, 'READ_SPECIES_FROM_FILE:3' )
+       LINE = ADJUSTL( ADJUSTR( LINE ) )
+       IF ( INDEX( LINE, 'passive_species' ) > 0 ) EXIT
+       CALL STRSPLIT( LINE, '-', SUBSTRS, N )
+       IF ( INDEX( LINE, '-' ) > 0 ) THEN
+          substrs(1) = ADJUSTL( ADJUSTR( substrs(1) ) )
+
+          !%%% GEOS-Chem in GCHP ###
+!          CALL MAPL_AddInternalSpec(GC, &
+!               SHORT_NAME      = TRIM(SPFX) // TRIM(SUBSTRS(1)),            &
+!               LONG_NAME       = TRIM(SUBSTRS(1)),                          &
+!               UNITS           = 'mol mol-1',                               &
+!               DIMS            = MAPL_DimsHorzVert,                         &
+!               VLOCATION       = MAPL_VLocationCenter,                      &
+!               PRECISION       = ESMF_KIND_R8,                              &
+!               FRIENDLYTO      = 'DYNAMICS:TURBULENCE:MOIST',               &
+!               RESTART         = restartAttr,                               &
+!               RC              = RC                                       )
+
+          ! Add to list of transported speces
+          NADV = NADV + 1
+          AdvSpc(NADV) = TRIM(SUBSTRS(1))
+       ENDIF
+    ENDDO
+    CLOSE( IU_GEOS )
 
 ! !EXTERNAL STATE:
 

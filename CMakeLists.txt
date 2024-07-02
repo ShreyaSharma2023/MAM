@@ -55,7 +55,9 @@ set (srcs
   Chem_UtilMod.F90
   DustEmissionMod.F90
   SeasaltEmissionMod.F90
-  #      wetdep.F90
+  MAM_GridComp.rc
+  inquireMod.F90
+#      wetdep.F90
   )
 
 
