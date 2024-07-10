@@ -181,7 +181,7 @@ contains
 
 !  !USES:
     USE inquireMod,           ONLY : findFreeLUN
-
+    USE FILE_MOD,             ONLY : IOERROR
 
 
 ! !ARGUMENTS:

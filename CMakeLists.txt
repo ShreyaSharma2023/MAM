@@ -57,6 +57,7 @@ set (srcs
   SeasaltEmissionMod.F90
   MAM_GridComp.rc
   inquireMod.F90
+  file_mod.F90
 #      wetdep.F90
   )
 
