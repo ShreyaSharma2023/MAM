@@ -2138,7 +2138,7 @@ contains
 
     ! fine seasalt
     call MAPL_GetPointer(internal, fss_a_num, 'NUM_A_FSS', __RC__)
-    call MAPL_GetPointer(import, fss_a_ncl, 'SS_A_FSS' , __RC__)
+    call MAPL_GetPointer(internal, fss_a_ncl, 'SS_A_FSS' , __RC__)
     call MAPL_GetPointer(internal, fss_a_so4, 'SU_A_FSS' , __RC__)
     call MAPL_GetPointer(internal, fss_a_nh4, 'AMM_A_FSS', __RC__)
 
