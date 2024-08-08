@@ -2043,13 +2043,6 @@ contains
 !   call MAPL_GetPointer(import, h2o2,  'H2O2',     __RC__)
     call MAPL_GetPointer(import, h2so4, 'H2SO4',    __RC__)
     call MAPL_GetPointer(import, so2,   'SO2',      __RC__)
-
-    ! Print the first layer
-    print *, "First layer values:", so2(1,1,1)
-    
-    ! Print the last layer
-    print *, "Last layer values:", so2(1,1,72)
-
 !   call MAPL_GetPointer(import, dms,   'DMS',      __RC__)
     call MAPL_GetPointer(import, nh3,   'NH3',      __RC__)
     call MAPL_GetPointer(import, soa_g, 'SOA_GAS',  __RC__)
@@ -2145,7 +2138,7 @@ contains
 
     ! fine seasalt
     call MAPL_GetPointer(internal, fss_a_num, 'NUM_A_FSS', __RC__)
-    call MAPL_GetPointer(internal, fss_a_ncl, 'SS_A_FSS' , __RC__)
+    call MAPL_GetPointer(import, fss_a_ncl, 'SS_A_FSS' , __RC__)
     call MAPL_GetPointer(internal, fss_a_so4, 'SU_A_FSS' , __RC__)
     call MAPL_GetPointer(internal, fss_a_nh4, 'AMM_A_FSS', __RC__)
 
@@ -2562,8 +2555,9 @@ contains
 
     call MAPL_TimerOn(mgState, '-EMISSIONS', __RC__)
 
-! Turning off all but sulfate emissions'
+! Turning off all emissions'
 
+#if 0
 !   Seasalt emissions
 !   -----------------
     call MAM_SS_Emission(self%scheme, import, export, self%qa, self%femisSS, self%dt, __RC__)
@@ -2583,6 +2577,7 @@ contains
 !   Sulfate (SO4) emissions
 !   -----------------------
     call MAM_SO4_Emission(self%scheme, import, export, self%qa, self%dt, __RC__)
+#endif
 
     call MAPL_TimerOff(mgState, '-EMISSIONS', __RC__)
 
